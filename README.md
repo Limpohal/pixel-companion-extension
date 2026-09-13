@@ -1,239 +1,71 @@
 # Pixel Companion
 
-An animated chunky pixel companion that walks around your browser — Hermes-style.
-It patters along the bottom of every web-page, flips at the edges, idles,
-jumps when you click it, waves when you hover, rides the scrollbar when you
-scroll, and occasionally drops a speech bubble.
+A tiny chunky pixel pal that lives at the bottom of every web page. It walks,
+idles, jumps when clicked, waves at your mouse, rides the scrollbar, drags
+and pins, and talks in little speech bubbles — with **twelve characters** to
+choose from.
 
-## Choose your companion
+> Install: [Chrome Web Store — _link goes live after review_]
 
-Pick between twelve characters from the popup (they all share the same
-behaviours — only the sprite and personality change):
+## Characters
 
-| Character   | Look                                                        |
-|-------------|-------------------------------------------------------------|
-| **Beep Bot** | The classic aqua robot with the antenna orb + face screen. |
-| **Snowman**  | Round snowman, red Santa hat with star, scarf, carrot nose. |
-| **Baby Shark** | Cat in a shark costume — bead eyes, toothy grin, :3 face. |
-| **Capybara** | Brown capy with the big green leaf hat and a tiny "Y" nose. |
-| **Koala**    | Grey koala — two big fluffy round ears on top of the head, a huge dark oval nose, eucalyptus sprig. |
-| **Panda**    | Kung-fu panda, based on Po's adult design — big round head with angled teardrop eye patches, bright eyes with pupils and a warm toothy grin, black arms wrapping a pale belly, tan paw pads, patchwork shorts with a knotted sash, bamboo staff. **Breaks into kung fu on his own** — punch combos, belly bounces and crane stances. |
-| **Butterfly** | Chubby purple buddy with four sky-blue wings flaring out behind it (soft lilac edge, cream and pink markings), short soft feelers, stubby feet. |
-| **Paws Patrol** | Pink pup in a leather flying helmet, goggles pushed up on the forehead, floppy tan ears, waggy tail. |
-| **Kaws** | Art-figure in pale sage grey — big lobed skull, X-ed out eyes that stay crossed in every mood, cross-shaped mouth, slim tube torso with arms hanging into pale mitten gloves, dark shorts with two pale dots on the hips, chunky rounded boots. |
-| **Sunflower** | Yellow petal ring (orange rimmed) around a brown seed head with a leafed green stem and roots for feet. |
-| **Elephant** | Round-bodied grey elephant — dome head, huge fan ears with a soft pink inner, a long trunk tapering to the ground (and trumpeting up when it waves), tiny tusks, stubby legs. |
-| **Minion** | Tall goggled buddy — domed yellow pill body, two metal-rimmed goggles (white lens, amber iris, glint) on a black strap, three strands of hair, wide grin, blue denim overalls with shoulder straps, buttons and a chest pocket, black mitten gloves and chunky boots. |
+Beep Bot · Snowman · Baby Shark · Capybara · Koala · Panda · Butterfly ·
+Paws Patrol · Kaws · Sunflower · Elephant · Minion
 
-Labels are display-only: the stored skin IDs never change, so renaming a row in
-this table cannot reset anyone's saved choice.  The goggled buddy is still
-stored as `duck`, and the picker renders whatever `label` says.
+Each is drawn entirely in code (no image assets) and has its own speech
+personality — the koala naps, the panda practices kung fu, the capybara is
+unbothered.
 
-Each character has its own line bank — the koala naps, the panda thinks
-about bamboo, Kaws says "xx" and the buddy greets you with "bello!".
+## Install (from source)
 
----
+1. Clone or download this repo
+2. Open **chrome://extensions** in Chrome
+3. Enable **Developer mode** (top-right)
+4. Click **Load unpacked** and select the `pixel-companion-extension/` folder
 
-## Installing
+To allow the companion on `file://` pages, enable "Allow access to file URLs"
+on the extension's Details page.
 
-1. Download or clone this repo.
-2. Open **chrome://extensions** in Chrome.
-3. Flip on **Developer mode** (top-right toggle).
-4. Click **Load unpacked** and select the `pixel-companion-extension/` folder.
+## Features
 
-To allow the companion on `file://` pages, click the extension's **Details**
-page and enable "Allow access to file URLs".
+- Walks along the bottom of the viewport, flips at edges
+- Idles, blinks, sits, and drops speech bubbles
+- Jumps on click/tap with a synthesized boop
+- Waves when the mouse is near; eyes follow the pointer
+- Rides the scrollbar on long pages
+- The panda breaks into kung fu on its own (punches, belly bounces, crane)
+- Press and hold to grab & drag; drop away from the floor to pin it mid-air
+- All sound effects are synthesized with the Web Audio API — no audio files
 
----
+### Popup settings
 
-## What it does
+- Character picker with live previews
+- Per-site on/off + global master toggle
+- Size 2–10 px, speed 0.4×–3×
+- Separate sound / speech toggles
 
-- **Walks** left and right along the bottom of the viewport, turning around
-  at edges with a little bounce.
-- **Idles** — stands still, blinks, wiggles its antenna, and looks around.
-  Every so often it **sits** for a few seconds.
-- **Squashes** when you click (or tap) it — a boing plays and a speech bubble
-  pops up.  It stays exactly where it is, so a poke never hides what you were
-  looking at.  (It still breaks into its own moves, like the panda's kung fu,
-  on its own timer.)
-- **Waves** if you hover the mouse near it; its eyes follow the pointer.
-  If you're too close it might leap back in surprise.
-- **Rides the scrollbar** on long pages: it hops onto the thumb and slides
-  along while you scroll, then hops back down.
-- **Speaks** little lines ("beep boop", "wheee!", "just vibing", …) based
-  on what it's doing.  Speech bubbles auto-fade after a few seconds.
-- **Synthesised sounds** — chunky boops, chimes, and bounces.  No audio
-  files; everything is generated by the Web Audio API.
+Settings save to `chrome.storage.local` and apply live in every tab.
 
----
+## Privacy
 
-## Moving the character out of the way
+No data collection. No analytics, no accounts, no tracking, no servers.
+Works 100% offline after install. Permissions are limited to:
 
-- **Poke it** — a click or tap plays a squash-and-stretch *boing*: it flattens
-  on impact, overshoots back and settles.  It does not jump away and does not
-  move, so a poke never makes it harder to see what you were reading.
-- **Drag it** — press on the character and move.  It dangles from the pointer
-  (arms up, legs swinging) and follows with a little lag.
-- **Drop it** near the bottom and it lands, then carries on walking the floor
-  line.  Drop it **higher up** and it stays pinned there, bobbing gently, until
-  you move it again.  Dropping it back near the floor un-pins it.
-- **It never blocks the page.** Only the character's own pixels respond to the
-  pointer; the transparent parts of its 64×64 box pass clicks straight through.
-  Measured across the cast, **44% of that box is click-through** (58% for the
-  widest skins), which is what used to swallow clicks aimed at links and
-  buttons underneath.
-- **Not remembered** — the position resets on the next page load.  Nothing is
-  written to storage, so this cannot accumulate per-site state.
+- **storage** — saves your settings on your own device
+- **activeTab** — lets the per-site toggle know the current site
 
----
-
-## Settings popup
-
-Click the extension toolbar icon to open the popup:
-
-- **Character** — pick any of the twelve companions (Beep Bot, Snowman, Baby
-  Shark, Capybara, Koala, Panda, Butterfly, Paws Patrol, Kaws, Sunflower,
-  Elephant, Minion) from a scrollable 3 × 4 grid.  The header preview and
-  every open tab update immediately.
-- **Bot on this site** — stop / start the character per-site.
-- **Enabled globally** — master power toggle.
-- **Size** — scale from mini (2 px) up to giant (10 px chunky blocks).
-- **Speed** — walk speed multiplier (0.4x – 3x).
-- **Sound effects** & **speech bubbles** — individual on / off toggles.
-
-All preferences are saved to `chrome.storage.local` and update live in
-every open tab.
-
----
-
-## File layout
-
-```
-pixel-companion-extension/
-├── manifest.json              Chrome MV3 manifest
-├── content/
-│   ├── art.js                 Pure pixel-art renderer: palette, geometry,
-│   │                          and the SKINS table (no DOM needed)
-│   ├── character.js           Companion DOM element + animation engine
-│   ├── behaviors.js           Hermes-style behaviour brain
-│   ├── speech.js              Speech bubbles + per-character line banks
-│   ├── synth.js               Synthesised sound effects
-│   └── content.js             Extension entry – storage & boot wiring
-├── popup/
-│   └── popup.html / .css / .js   Settings popup, character picker and live
-│                                 preview — loads the shared content/art.js
-├── icons/                     icon16 / 32 / 48 / 128
-├── test/
-│   ├── render-headless.js     Renders every skin, asserts coverage, writes
-│   │                          a contact sheet; guards renderer drift
-│   ├── interaction-headless.js  Stubbed DOM/canvas: hit testing, click-through,
-│   │                          drag, drop, squash — guards the pointer layer
-│   └── out/                   Generated PPM / PNG / GIF output artifacts
-├── tools/
-│   ├── gen_icons.py           Pure-Python PNG icon generator
-│   └── ascii_preview.js       Node script that renders frames to ASCII
-└── README.md
-```
-
-There is exactly **one** copy of the renderer: `content/art.js`.  The popup
-loads it via `../content/art.js`, so the preview can never drift out of sync
-with what runs on the page.
-
----
+Content scripts never run on `chrome://` pages or the Chrome Web Store.
 
 ## Development
 
-Everything is dependency-free — no build step, no npm install.
-
-```bash
-# render every skin, assert pixel/colour coverage, writes test/out/
-node test/render-headless.js
-
-# pointer handling: hit testing, click-through, drag, drop, squash
-node test/interaction-headless.js
-
-# eyeball frames as ASCII in the terminal
-node tools/ascii_preview.js
-
-# regenerate the extension icons
-python3 tools/gen_icons.py
+```
+node test/render-headless.js       # renders all skins, guards renderer drift
+node test/interaction-headless.js  # pointer layer: hit testing, drag, pin
+node tools/ascii_preview.js        # render skins as ASCII in a terminal
+python3 tools/gen_icons.py         # regenerate extension icons
+python3 tools/gen_cws_assets.py    # regenerate store assets (assets/)
 ```
 
-Both test scripts exit non-zero on failure, so they work as a pre-commit or CI
-gate.  `interaction-headless.js` drives a stubbed DOM and canvas and covers the
-cases that are easy to regress by hand: a press on a transparent pixel must not
-be claimed, a press on an opaque one must be, a tap must squash without moving
-the character, a drag must move it, and a drop must choose between walking and
-pinning.
+## License
 
----
-
-## Adding or tweaking characters
-
-All twelve companions are described by the `SKINS` table in `content/art.js`.
-A skin declares:
-
-- `label` — the name shown in the popup picker,
-- `col` — palette overrides (body, shading, eye, cheek, foot, mouth, plus
-  optional `arm` / `armDk`),
-- feature flags — `feet`, `antenna`, `panel` (the robot face-screen),
-- `eyes` / `eyeW`, plus `eyeY`, `eye1X`, `eye2X`, `mouthY`, `cheekX` /
-  `cheekY` placement overrides,
-- body shape overrides — `bodyInset` (narrow the chassis, e.g. the butterfly's
-  body) and `bodyH` (change its height).  Arm anchors follow `bodyInset`, so
-  arms stay attached to an inset body,
-- `customBody: true` plus `body(ctx, by, opts)` — draw a whole bespoke
-  silhouette instead of the chassis capsule.  Use this when the animal fights
-  the box (the elephant's round body and dome head, the duck's big head on a
-  small body); blobby animals can stay on the shared chassis,
-- `noArms: true` — hide the chassis arms when the skin supplies its own limbs
-  (the duck and sunflower draw wings / leaves instead),
-- `cheekFaces` — which expressions show blush,
-- `drawLegs(ctx, swing, col, by, opts)` — swap the chassis boots for custom
-  legs (stubby elephant legs, webbed duck feet, the sunflower's roots),
-- `extraBehind(ctx, by, opts)` — drawn after the feet but **before** the body,
-  for ears / wings / tails that should tuck behind the silhouette,
-- `extraBack(ctx, by, opts)` — drawn over the body but behind the face, for
-  held props such as the panda's bamboo,
-- `extraUnder(ctx, by)` / `extraOver(ctx, by, opts)` — drawn under or over the
-  face (muzzles, noses, helmets, hats),
-- `customFace: true` plus `face(ctx, by, face, opts)` — take over the whole
-  face (the panda, shark and Kaws use this for pupils, grins and X eyes),
-- `actions: ['punch', 'bounce', 'crane']` — the moves this character breaks
-  into.  The timelines live in `character.js` (`ACTIONS`), which maps them onto
-  the arm poses `drawArms` supports (`guard`, `punchA`, `punchB`, `crane`,
-  plus the shared `up` / `wave` / `down`).  `behaviors.js` performs one every
-  20–35s while the character is idle, and whenever it is clicked.
-
-Add an entry to `SKINS` and it automatically appears in `PBArt.skinIds`, in
-the popup picker, and in the headless test sweep.  No external image assets.
-
-**Shape helpers.** `roundedRect(ctx, x, y, w, h, r, color)` insets each row
-along a quarter circle, so the radius is honoured at any size — use it freely.
-The chassis capsule itself (`roundedBody`) keeps its original flat corner bevel
-so the older sprites stay pixel-identical.
-
-**Checking your work.** `node test/render-headless.js` renders every skin to
-`test/out/*.ppm`, asserts each one paints enough pixels in enough colours, and
-exits non-zero on failure — the PPMs are easy to view or convert to PNG.
-
----
-
-## Permissions
-
-- **storage** — saves your preferences (character / enabled / size / speed /
-  sound / speech).
-- **activeTab** — lets the popup know which site you're viewing so the
-  per-site toggle works.  No browsing history is read.
-- Content scripts inject only into `http://` and `https://` pages — they
-  **never** run on `chrome://` pages or the Chrome Web Store.
-
-## Troubleshooting
-
-| Symptom                | Fix |
-|------------------------|-----|
-| Extension icon missing | Re-load the extension (chrome://extensions → reload). |
-| Companion not appearing| Check the popup — master toggle on, site toggle on. |
-| No sound               | Click anywhere on the page once (Chrome requires a user gesture before allowing audio). |
-| Companion hides on SPA | It might be behind a `position:fixed` overlay.  Try refreshing. |
-| Old character showing  | Reload the extension after editing `content/art.js`, then refresh the page. |
+MIT
