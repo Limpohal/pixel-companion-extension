@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Pixel Companion</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="head">
+    <canvas id="preview" width="96" height="96"></canvas>
+    <div class="head-txt">
+      <h1>Pixel Companion</h1>
+      <p class="sub">A tiny bot patrolling your browser.</p>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="row">
+      <div>
+        <div class="label">Bot on this site</div>
+        <div class="hint" id="siteHint">example.com</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="siteToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="label" style="padding-bottom:4px;">Character</div>
+    <div class="char-grid" id="charGrid"></div>
+  </section>
+
+  <section class="card">
+    <div class="row">
+      <div>
+        <div class="label">Enabled globally</div>
+        <div class="hint">Master switch for all sites</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="globalToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="row">
+      <div>
+        <div class="label">Size</div>
+        <div class="hint" id="sizeVal">4 px · small-ish</div>
+      </div>
+      <input type="range" id="size" min="2" max="10" step="1" value="4">
+    </div>
+
+    <div class="row">
+      <div>
+        <div class="label">Speed</div>
+        <div class="hint" id="speedVal">1.0×</div>
+      </div>
+      <input type="range" id="speed" min="4" max="30" step="1" value="10">
+    </div>
+
+    <div class="row">
+      <div>
+        <div class="label">Sound effects</div>
+        <div class="hint">Boops &amp; beeps</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="soundToggle" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="row">
+      <div>
+        <div class="label">Speech bubbles</div>
+        <div class="hint">Occasional thoughts</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="speechToggle" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+  </section>
+
+  <p class="foot">
+    Click the bot to make it jump. Move your mouse near it — it waves.<br>
+    Scroll long pages: it may ride the scrollbar. 🎈
+  </p>
+
+  <!-- shared renderer: single source of truth (was a hand-synced copy) -->
+  <script src="../content/art.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
