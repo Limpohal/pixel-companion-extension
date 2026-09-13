@@ -5,18 +5,33 @@ idles, jumps when clicked, waves at your mouse, rides the scrollbar, drags
 and pins, and talks in little speech bubbles — with **twelve characters** to
 choose from.
 
-> Install: [Chrome Web Store — _link goes live after review_]
+![Pixel Companion characters](assets/shot-1-popup.png)
 
 ## Characters
 
-Beep Bot · Snowman · Baby Shark · Capybara · Koala · Panda · Butterfly ·
-Paws Patrol · Kaws · Sunflower · Elephant · Minion
+| | | |
+|---|---|---|
+| **Beep Bot** | **Snowman** | **Capybara** |
+| **Elephant** | **Baby Shark** | **Minion** |
+| **Koala** | **Panda** | **Butterfly** |
+| **Paws Patrol** | **Kaws** | **Sunflower** |
+
+<p align="center">
+  <img src="assets/shot-2-babyshark.png" width="420" alt="Baby Shark pal on a page">
+  <img src="assets/shot-4-elephant.png" width="420" alt="Elephant pal asking for peanuts">
+</p>
 
 Each is drawn entirely in code (no image assets) and has its own speech
 personality — the koala naps, the panda practices kung fu, the capybara is
-unbothered.
+unbothered, and Kaws just says "xx".
 
-## Install (from source)
+## Install
+
+**From the Chrome Web Store (recommended once live):**
+
+> Install: [Chrome Web Store — _link goes live after review_]
+
+**From source (developer install):**
 
 1. Clone or download this repo
 2. Open **chrome://extensions** in Chrome
@@ -55,6 +70,10 @@ Works 100% offline after install. Permissions are limited to:
 - **activeTab** — lets the per-site toggle know the current site
 
 Content scripts never run on `chrome://` pages or the Chrome Web Store.
+
+## Support
+
+Found a bug or have a character idea? [Open an issue](https://github.com/Limpohal/pixel-companion-extension/issues).
 
 ## Development
 
