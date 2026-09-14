@@ -599,7 +599,7 @@
     },
 
     skye: {
-      label: 'Paws Patrol',
+      label: 'Aviator Pup',
       col: { body: '#f7b8cf', bodyDk: '#e193b4', eye: '#332433', cheek: '#f28ab8',
              foot: '#e193b4', footDk: '#c97a9a', mouth: '#332433' },
       feet: true, antenna: false, panel: false,
@@ -644,7 +644,7 @@
     },
 
     xbuddy: {
-      label: 'Kaws',
+      label: 'X-Buddy',
       col: { body: '#b7c1ba', bodyDk: '#9aa69f', eye: '#2b3038', cheek: '#c8b0b4',
              foot: '#dfe4e2', footDk: '#c2c9c6', mouth: '#2b3038',
              arm: '#dfe4e2', armDk: '#c2c9c6' },

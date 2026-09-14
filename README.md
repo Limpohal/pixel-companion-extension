@@ -14,7 +14,7 @@ choose from.
 | **Beep Bot** | **Snowman** | **Capybara** |
 | **Elephant** | **Baby Shark** | **Minion** |
 | **Koala** | **Panda** | **Butterfly** |
-| **Paws Patrol** | **Kaws** | **Sunflower** |
+| **Aviator Pup** | **X-Buddy** | **Sunflower** |
 
 <p align="center">
   <img src="assets/shot-2-babyshark.png" width="420" alt="Baby Shark pal on a page">
@@ -23,7 +23,7 @@ choose from.
 
 Each is drawn entirely in code (no image assets) and has its own speech
 personality — the koala naps, the panda practices kung fu, the capybara is
-unbothered, and Kaws just says "xx".
+unbothered, and X-Buddy just says "xx".
 
 ## Install
 
