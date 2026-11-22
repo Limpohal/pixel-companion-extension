@@ -4,3 +4,7 @@ test/out/
 *.gif
 *.zip
 .DS_Store
+
+# raw store-screenshot sources (the 1280x800 exports live in store-1280x800/)
+assets/screenshots/*.tiff
+assets/screenshots/*.png
