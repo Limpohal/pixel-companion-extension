@@ -5,7 +5,10 @@ project's own sprite data (reuses tools/gen_icons.py style PNG writer).
 
 Outputs (in assets/):
   store-icon-128.png   128x128  store icon (required)
-  promo-tile-440.png   440x280  small promo tile (required for new items)
+
+The promo tile, marquee and roster screenshot are NOT generated here: they are
+rendered from content/art.js by tools/store-art.html (see that file's header),
+so the sprite data has a single source of truth.
 """
 import os
 import struct
@@ -171,65 +174,5 @@ def store_icon():
     write_png(os.path.join(OUT, 'store-icon-128.png'), W, H, pix)
 
 
-# ----------------------------------------------------------------------
-# asset 2: small promo tile 440x280
-# ----------------------------------------------------------------------
-def promo_tile():
-    W, H = 440, 280
-    bg1, bg2 = hx("#1d2547"), hx("#2a3560")
-    accent = hx("#3ec1d3")
-
-    # character lineup: bot, snowman, shark, capy, panda, koala (simplified:
-    # we render the bot; other pals are represented by colored tiles)
-    colors = [hx("#3ec1d3"), hx("#fdfdf7"), hx("#a9dff2"), hx("#b5793c"),
-              hx("#f5f7fa"), hx("#9fb0c0")]
-
-    def pix(x, y):
-        t = (x + y) / (W + H)
-        base = tuple(int(a + (b - a) * t) for a, b in zip(bg1, bg2))
-        # bot sprite on the left
-        s = render_scaled(bot_pixel, 2, 20, 60)
-        c = s(x, y)
-        if c:
-            return c
-        # character swatch dots
-        for i, col in enumerate(colors):
-            cx = 40 + i * 24
-            cy = 232
-            if in_rounded(x, y, cx, cy, 18, 18, 6):
-                return col
-        return base
-
-    write_png(os.path.join(OUT, 'promo-tile-440x280.png'), W, H, pix)
-
-
-# ----------------------------------------------------------------------
-# asset 3: marquee promo tile 1400x560
-# ----------------------------------------------------------------------
-def marquee_tile():
-    W, H = 1400, 560
-    bg1, bg2 = hx("#1d2547"), hx("#2a3560")
-    colors = [hx("#3ec1d3"), hx("#fdfdf7"), hx("#a9dff2"), hx("#b5793c"),
-              hx("#f5f7fa"), hx("#9fb0c0")]
-
-    def pix(x, y):
-        t = (x + y) / (W + H)
-        base = tuple(int(a + (b - a) * t) for a, b in zip(bg1, bg2))
-        # big bot on the left
-        s = render_scaled(bot_pixel, 4, 90, 90)   # 64*4 = 256 tall
-        c = s(x, y)
-        if c:
-            return c
-        # swatch dots bottom-left under the bot
-        for i, col in enumerate(colors):
-            if in_rounded(x, y, 100 + i * 40, 420, 30, 30, 10):
-                return col
-        return base
-
-    write_png(os.path.join(OUT, 'marquee-tile-1400x560.png'), W, H, pix)
-
-
 if __name__ == '__main__':
     store_icon()
-    promo_tile()
-    marquee_tile()

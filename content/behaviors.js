@@ -29,20 +29,39 @@
     this._raf = null;
     this._last = null;
     this._started = false;
+    this._running = false;                // false => the rAF loop stays off
+    this._onMouseMove = null;             // named so stop() can unbind them
+    this._onMouseLeave = null;
+    this._onScroll = null;
+    this._onResize = null;
+    this._scrollTimer = null;             // pending scroll -> ride debounce
     this._scrollStoppedAt = 0;
     this._speakLockUntil = 0;
     this._hoverWaveAt = 0;
     this.nextAction = 0;                  // kung-fu flourish timer
+    this._bubble = null;                  // at most one live bubble at a time
   }
 
-  /* Skins may declare `actions` (see art.js).  The panda uses this to break
-   * into kung fu; every other character simply never qualifies. */
+  /* Skins may declare `actions` (see art.js).  The panda breaks into kung fu,
+   * Oyen stretches, Scout Pup salutes and the watermelon spits seeds; every
+   * other character simply never qualifies. */
   function actionList(bot) {
     var skin = PBArt.SKINS[bot.skin];
     return (skin && skin.actions) || null;
   }
 
+  /* A skin may declare `float: true` in art.js (the watermelon).  Limbless
+   * characters do not walk: they hover just above the floor line and bounce
+   * while they travel, so the ground shadow still reads as "below" them. */
+  function isFloater(bot) {
+    var skin = PBArt.SKINS[bot.skin];
+    return !!(skin && skin.float);
+  }
+
   var GRAVITY = 0.55;         // normalized units per frame**2 at 60fps
+  var FLOAT_REST = 0.7;       // grid units of lift while idling
+  var FLOAT_BOB = 0.8;        // grid units of idle bob amplitude
+  var FLOAT_HOP = 2.2;        // extra grid units while travelling
 
   /* ---------------------------------------------------------------- *
    * wiring
@@ -50,6 +69,7 @@
   PBBehavior.prototype.start = function () {
     if (this._started) return;
     this._started = true;
+    this._running = true;
     var self = this;
 
     /* place bot at a random spot on the ground */
@@ -63,31 +83,35 @@
        20-35s while he is not otherwise busy */
     this.nextAction = this._now() + 7000 + Math.random() * 6000;
 
-    /* world listeners */
-    global.addEventListener('mousemove', function (e) {
+    /* World listeners, kept as named handlers on the instance so stop() can
+       take them back off again; anonymous closures could not be removed, so a
+       stop()/start() cycle used to leave a duplicate of each behind. */
+    this._onMouseMove = function (e) {
       self.mouse.x = e.clientX;
       self.mouse.y = e.clientY;
-    });
-    global.addEventListener('mouseleave', function () {
+    };
+    this._onMouseLeave = function () {
       self.mouse.x = -9999;
       self.mouse.y = -9999;
-    });
-    var scrollT = null;
-    global.addEventListener('scroll', function () {
+    };
+    this._onScroll = function () {
       if (self.mode === 'scroll') {
         self._scrollStoppedAt = self._now() + 1400;
-      } else if (scrollT === null) {
+      } else if (self._scrollTimer === null) {
         /* page scrolled while grounded: maybe hop on */
-        scrollT = setTimeout(function () {
-          scrollT = null;
+        self._scrollTimer = setTimeout(function () {
+          self._scrollTimer = null;
           self._maybeRideScroll();
         }, 120);
       }
-    }, true);
-
-    global.addEventListener('resize', function () {
+    };
+    this._onResize = function () {
       self._clampToViewport();
-    });
+    };
+    global.addEventListener('mousemove', this._onMouseMove);
+    global.addEventListener('mouseleave', this._onMouseLeave);
+    global.addEventListener('scroll', this._onScroll, true);
+    global.addEventListener('resize', this._onResize);
 
     /* bot reactions */
     this.bot.onClick = function () {
@@ -109,6 +133,17 @@
       self.bot.state = 'idle';
       self.bot.face = 'surprise';
       self._speakLockUntil = self._now() + 1600;
+    };
+    /* The press is over, dragged or not.  This is what makes a plain tap safe:
+       onDrop only fires for a real drag, so nothing used to clear the 'held'
+       set above — one click froze the character for the rest of the page's
+       life, and _reactClick bailed on its own `mode === 'held'` guard, so the
+       poke did nothing either. */
+    this.bot.onRelease = function () {
+      if (self.mode !== 'held') return;      // a drag is resolved by onDrop
+      self.mode = 'walk';
+      self.bot.state = 'walk';
+      self.modeUntil = self._now() + 1500 + Math.random() * 1500;
     };
     /* put down: near the floor it goes back to walking, higher up it stays
        pinned there and bobs gently until you move it again */
@@ -136,10 +171,28 @@
     this._raf = requestAnimationFrame(this._frame);
   };
 
+  /* A real stop: the loop must not reschedule itself and the world listeners
+   * this instance added must come back off.  Gating the reschedule on
+   * `_running` is what actually ends the loop — cancelling one frame is not
+   * enough, because a frame already in flight used to queue the next one. */
   PBBehavior.prototype.stop = function () {
+    if (!this._started) return;
     this._started = false;
+    this._running = false;
     if (this._raf) cancelAnimationFrame(this._raf);
     this._raf = null;
+    this._last = null;                    // a restart must not see a huge dt
+    if (this._onMouseMove) global.removeEventListener('mousemove', this._onMouseMove);
+    if (this._onMouseLeave) global.removeEventListener('mouseleave', this._onMouseLeave);
+    if (this._onScroll) global.removeEventListener('scroll', this._onScroll, true);
+    if (this._onResize) global.removeEventListener('resize', this._onResize);
+    this._onMouseMove = this._onMouseLeave = null;
+    this._onScroll = this._onResize = null;
+    if (this._scrollTimer !== null) {     // a ride must not fire after stop()
+      clearTimeout(this._scrollTimer);
+      this._scrollTimer = null;
+    }
+    this._dismissBubble();
   };
 
   PBBehavior.prototype._now = function () {
@@ -152,10 +205,12 @@
   PBBehavior.prototype._frame = function (now) {
     var dt = Math.min(50, now - (this._last || now));
     this._last = now;
-    if (this._frame) this._raf = requestAnimationFrame(this._frame);
+    if (this._running) this._raf = requestAnimationFrame(this._frame);
 
     var s = this.getSettings();
-    if (!s.enabled) return;               // still render, just no behavior
+    /* One frame can still land here between the toggle flipping and applyLive()
+       calling stop(); nothing is rendered on this path, so do not linger. */
+    if (!s.enabled) return;
 
     this._update(dt, now);
     this.bot.tick(dt);
@@ -221,16 +276,36 @@
       bot.phase = (bot.phase + 0.018 * speedMul * n) % 1;
     }
 
+    /* ---- floaty skins: hover + bounce instead of steps ---- */
+    if (isFloater(bot) && !bot.pinned &&
+        bot.state !== 'jump' && bot.state !== 'fall') {
+      var lift;
+      if (bot.state === 'walk') {
+        /* one bounce per half walk-cycle, so it hops along the floor */
+        lift = FLOAT_REST + Math.abs(Math.sin(bot.phase * Math.PI * 2)) * FLOAT_HOP;
+      } else {
+        /* idle: a slow, weightless bob that never reaches the ground */
+        lift = FLOAT_REST + (1 + Math.sin(now / 620)) * FLOAT_BOB;
+      }
+      bot.y = bot.groundY() - Math.max(1, Math.round(lift * px));
+    }
+
     /* ---- edge flip ---- */
     this._clampToViewport();
 
     /* ---- mode scheduling ---- */
-    if (this.mode === 'walk' && now > this.modeUntil) this._pickGroundMode(now);
-    else if (this.mode === 'idle' && now > this.modeUntil) this._pickGroundMode(now);
-    else if (this.mode === 'sit' && now > this.modeUntil) {
-      this._pickGroundMode(now);
-    } else if (this.mode === 'scroll' && now > this.modeUntil) {
-      this._leaveScroll(now);
+    /* A kung-fu flourish owns the pose until its own timeline ends: modeUntil
+       is wall clock while the action runs on the bot's clock (which stops while
+       the tab is hidden), so the panda could otherwise be flipped to 'walk'
+       half way through a punch. */
+    if (!this.bot.action) {
+      if (this.mode === 'walk' && now > this.modeUntil) this._pickGroundMode(now);
+      else if (this.mode === 'idle' && now > this.modeUntil) this._pickGroundMode(now);
+      else if (this.mode === 'sit' && now > this.modeUntil) {
+        this._pickGroundMode(now);
+      } else if (this.mode === 'scroll' && now > this.modeUntil) {
+        this._leaveScroll(now);
+      }
     }
 
     /* ---- ambient speak ---- */
@@ -254,11 +329,13 @@
    * ---------------------------------------------------------------- */
   PBBehavior.prototype._pickGroundMode = function (now) {
     var r = Math.random();
+    /* a hovering slice cannot sit on the floor, so the sit roll becomes idle */
+    var floaty = isFloater(this.bot);
     if (r < 0.55) {
       this.mode = 'walk';
       this.bot.state = 'walk';
       this.modeUntil = now + 2500 + Math.random() * 6000;
-    } else if (r < 0.82) {
+    } else if (r < 0.82 || floaty) {
       this.mode = 'idle';
       this.bot.state = 'idle';
       this.bot.face = 'normal';
@@ -280,8 +357,8 @@
     var name = forced || list[Math.floor(Math.random() * list.length)];
     var dur = this.bot.startAction(name);
     if (!dur) return false;
-    /* the belly bounce is an actual hop */
-    if (name === 'bounce') this.bot.jump();
+    /* a routine flagged `hop` is an actual arc, not just a pose */
+    if (this.bot.actionHops) this.bot.jump();
     this.mode = 'idle';
     this.bot.state = this.bot.state === 'jump' ? 'jump' : 'idle';
     this.bot.face = 'happy';
@@ -391,11 +468,14 @@
     this.bot.face = 'happy';
     this.modeUntil = now + 4000 + Math.random() * 6000;
     this._play('wave');
-    this._speak('scroll', 1800);
-    this._speakLockUntil = now + 2000;
     this.bot.vx = 0;
     var trackX = global.innerWidth - s.w - 14;
+    /* Move first, then speak: a bubble is positioned from the bot's rect when it
+       is created, so speaking first left "riding the scrollbar" hanging at the
+       bottom of the page while the character appeared up on the track. */
     this.bot.setPos(trackX, this.bot.groundY());
+    this._speak('scroll', 1800);
+    this._speakLockUntil = now + 2000;
     this._scrollStoppedAt = now + 1500;
   };
 
@@ -434,13 +514,24 @@
     var s = this.getSettings();
     if (!s.speech) return;
     var text = PB_SPEECH.pick(bank, this.bot.skin);
+    /* One bubble at a time.  Ambient thoughts, pokes and kung-fu shouts all
+       arrive here independently, so a poke mid-thought used to stack a second
+       bubble on top of the first one. */
+    this._dismissBubble();
     try {
-      new PB_SPEECH.SpeechBubble({
+      this._bubble = new PB_SPEECH.SpeechBubble({
         parent: this.bot.el,
         duration: minDur || 2400,
-        text: text
+        text: text,
+        theme: PB_SPEECH.resolveTheme(s.theme)
       }).show();
-    } catch (e) { /* ignore */ }
+    } catch (e) { this._bubble = null; }
+  };
+
+  PBBehavior.prototype._dismissBubble = function () {
+    if (!this._bubble) return;
+    try { this._bubble.hide(); } catch (e) { /* already gone */ }
+    this._bubble = null;
   };
 
   PBBehavior.prototype._play = function (name) {

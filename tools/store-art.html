@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pixel Companion — store art</title>
+<style>
+  /* Reproducible store graphics, rendered from content/art.js so the sprites
+     can never drift from the shipped code.
+
+     Open with ?shot=roster (1280x800), ?shot=promo (440x280) or
+     ?shot=marquee (1400x560), set the viewport to that exact size, and
+     screenshot.  No build step, no duplicated pixel data. */
+  html, body {
+    margin: 0; padding: 0; overflow: hidden;
+    user-select: none; -webkit-user-select: none;
+    background: radial-gradient(circle at 50% 0%, #26315a 0%, #141a36 60%, #10142a 100%);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: #e7ecf5;
+  }
+  .wrap { display: flex; flex-direction: column; align-items: center; }
+  h1 { margin: 0; letter-spacing: 0.4px; }
+  .sub { margin: 0; color: #8b94ab; }
+  .cell { display: flex; flex-direction: column; align-items: center; }
+  canvas { image-rendering: pixelated; }
+
+  /* ---- roster: 1280x800, all fifteen with labels ---- */
+  body.roster { width: 1280px; height: 800px; }
+  body.roster h1 { margin-top: 24px; font-size: 34px; }
+  body.roster .sub { margin: 4px 0 10px; font-size: 15px; }
+  body.roster #grid { display: grid; grid-template-columns: repeat(5, 208px); gap: 26px; }
+  body.roster canvas { width: 192px; height: 192px; }
+  body.roster .name { margin-top: 4px; font-size: 14px; color: #cdd6e6; }
+
+  /* ---- promo: 440x280 ---- */
+  body.promo { width: 440px; height: 280px; display: flex; align-items: center; }
+  body.promo .left { margin-left: 16px; }
+  body.promo #hero { width: 128px; height: 128px; }
+  body.promo .txt { margin-left: 16px; }
+  body.promo h1 { font-size: 25px; }
+  body.promo .sub { margin-top: 6px; font-size: 12.5px; width: 250px; line-height: 1.35; }
+  body.promo .dots { margin-top: 14px; display: flex; gap: 8px; }
+  body.promo .dot { width: 14px; height: 14px; border-radius: 4px; }
+
+  /* ---- marquee: 1400x560 ---- */
+  body.marquee { width: 1400px; height: 560px; display: block; position: relative; }
+  body.marquee .copy { position: absolute; left: 74px; top: 86px; }
+  body.marquee h1 { font-size: 58px; }
+  body.marquee .sub { margin-top: 12px; font-size: 22px; }
+  body.marquee .note { margin-top: 10px; font-size: 14px; color: #6f7890; }
+  body.marquee #row {
+    position: absolute; left: 76px; top: 330px;
+    display: flex; gap: 12px; align-items: flex-end;
+  }
+  body.marquee #row canvas { width: 128px; height: 128px; }
+</style>
+</head>
+<body>
+<script src="../content/art.js"></script>
+<script>
+(function () {
+  var shot = (new URLSearchParams(location.search)).get('shot') || 'roster';
+  document.body.className = shot;
+
+  function sprite(id, px) {
+    var cv = document.createElement('canvas');
+    cv.width = 64; cv.height = 64;
+    var ctx = cv.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    PBArt.draw(ctx, {
+      skin: id, face: 'happy', mouth: 'smile', phase: 0.12,
+      facing: 1, arm: 'down'
+    });
+    cv.style.width = px + 'px';
+    cv.style.height = px + 'px';
+    return cv;
+  }
+
+  if (shot === 'roster') {
+    var wrap = document.createElement('div');
+    wrap.className = 'wrap';
+    wrap.innerHTML = '<h1>Pixel Companion</h1>' +
+      '<p class="sub">Fifteen chunky pixel pals — every one drawn in code, no image files.</p>';
+    var grid = document.createElement('div');
+    grid.id = 'grid';
+    PBArt.skinIds.forEach(function (id) {
+      var cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.appendChild(sprite(id, 192));
+      var name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = PBArt.skinLabel(id);
+      cell.appendChild(name);
+      grid.appendChild(cell);
+    });
+    wrap.appendChild(grid);
+    document.body.appendChild(wrap);
+  }
+
+  if (shot === 'promo') {
+    var left = document.createElement('div');
+    left.className = 'left';
+    left.id = 'hero';
+    left.appendChild(sprite('bot', 128));
+    var txt = document.createElement('div');
+    txt.className = 'txt';
+    txt.innerHTML = '<h1>Pixel Companion</h1>' +
+      '<p class="sub">Fifteen pixel pals that walk, boing and talk on any page.</p>';
+    var dots = document.createElement('div');
+    dots.className = 'dots';
+    ['#3ec1d3', '#a9dff2', '#f5f7fa', '#ec9134', '#f2635f'].forEach(function (c) {
+      var d = document.createElement('span');
+      d.className = 'dot';
+      d.style.background = c;
+      dots.appendChild(d);
+    });
+    txt.appendChild(dots);
+    document.body.appendChild(left);
+    document.body.appendChild(txt);
+  }
+
+  if (shot === 'marquee') {
+    var copy = document.createElement('div');
+    copy.className = 'copy';
+    copy.innerHTML = '<h1>Pixel Companion</h1>' +
+      '<p class="sub">Fifteen pixel pals that walk, boing and talk on any page.</p>' +
+      '<p class="note">Pick a pal, poke it, drag it, pin it mid-air.</p>';
+    document.body.appendChild(copy);
+    var row = document.createElement('div');
+    row.id = 'row';
+    ['bot', 'snowman', 'shark', 'duck', 'cat', 'scout', 'melon', 'koala', 'elephant']
+      .forEach(function (id) { row.appendChild(sprite(id, 128)); });
+    document.body.appendChild(row);
+  }
+})();
+</script>
+</body>
+</html>

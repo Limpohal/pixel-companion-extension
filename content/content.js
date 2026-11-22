@@ -7,7 +7,8 @@
  *
  * Storage schema (chrome.storage.local):
  *   pbc_settings  { enabled:bool, size:int, speed:number,
- *                   sound:bool, speech:bool, character:string }
+ *                   sound:bool, speech:bool, character:string,
+ *                   theme:'system'|'light'|'dark' }
  *   pbc_sites     { "https://origin": { enabled:bool }, ... }
  */
 (function () {
@@ -15,7 +16,7 @@
 
   var DEFAULTS = {
     settings: { enabled: true, size: 4, speed: 1, sound: true, speech: true,
-                character: 'bot' },
+                character: 'bot', theme: 'system' },
     sites: {}
   };
 
@@ -48,10 +49,15 @@
     var skinIds = (typeof PBArt !== 'undefined' && PBArt.skinIds) || ['bot'];
     settings.character = (skinIds.indexOf(settingsObj.character) !== -1)
       ? settingsObj.character : 'bot';
+    settings.theme = normalizeTheme(settingsObj.theme);
     siteSetting = sitesObj[origin];
     if (siteSetting && siteSetting.enabled === false) {
       settings.enabled = false;
     }
+  }
+
+  function normalizeTheme(v) {
+    return (v === 'light' || v === 'dark') ? v : 'system';
   }
 
   function clampInt(v, lo, hi, d) {
@@ -83,6 +89,13 @@
     bot.setSize(settings.size);
     bot.setEnabled(settings.enabled);
     bot.setSkin(settings.character);
+    /* Switching the companion off has to stop the rAF loop as well: it used to
+       keep waking 60 times a second, drawing nothing, for as long as the tab
+       stayed open.  start() is idempotent, so this is safe on every change. */
+    if (behavior) {
+      if (settings.enabled) behavior.start();
+      else behavior.stop();
+    }
   }
 
   /* ---------------------------------------------------------------- *
@@ -104,7 +117,11 @@
       behavior = new PBBehavior(bot, function () {
         return settings;
       });
-      behavior.start();
+      /* Don't arm the loop for a companion that is switched off.  On a per-site
+         opt-out every page load used to leave a 60Hz requestAnimationFrame loop
+         running, drawing nothing, for as long as the tab stayed open;
+         applyLive() starts it when the toggle goes back on. */
+      if (settings.enabled) behavior.start();
 
       if (store) {
         try {

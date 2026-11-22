@@ -9,12 +9,15 @@
  *   bot.boot()                                    mount into document
  *   bot.tick(dtMs)                                advance clock + render
  *   bot.setEnabled(on) / bot.setSize(px)          live settings
+ *   bot.setSkin(id)                               any PBArt.skinIds entry
  *   bot.setPos(x, y) / bot.setFacing(dir)         placement
+ *   bot.size() / bot.groundY() / bot.hitTest(x,y) geometry + pixel hit test
  *   bot.state = 'walk'|'idle'|'jump'|'fall'|'sit'
  *   bot.face = 'normal'|'blink'|'happy'|'surprise'|'love'
- *   bot.jump() / bot.wave(ms) / bot.bump()
- *   bot.onClick / bot.onHover callbacks
- *   bot.skin = 'bot'|'snowman'|'shark'|'capy'
+ *   bot.jump() / bot.wave(ms) / bot.squash()
+ *   bot.startAction(name) / bot.stopAction()      keyframed poses (see ACTIONS)
+ *   bot.held / bot.pinned                         true while dragged / pinned
+ *   bot.onClick / bot.onHover / bot.onGrab / bot.onRelease / bot.onDrop
  */
 (function (global) {
   'use strict';
@@ -33,6 +36,7 @@
     this.phase = 0;                 // walk cycle
     this.t = 0;                     // seconds
     this._blinkAt = 0;
+    this._blinkUntil = 0;
     this._waveT = null;
     this._bumpAt = -1;
     this._bumpDir = 1;
@@ -40,6 +44,7 @@
     this.onClick = null;
     this.onHover = null;
     this.onGrab = null;             // pointer pressed on an opaque pixel
+    this.onRelease = null;          // pointer let go, dragged or not
     this.onDrop = null;             // released after a drag, (x, y)
     this.held = false;              // being dragged: arms up, legs dangling
     this.pinned = false;            // dropped away from the floor: floats there
@@ -111,7 +116,10 @@
     this.canvas.width = W * px;
     this.canvas.height = H * px;
     this.canvas.style.cssText = 'width:100%;height:100%;display:block;';
-    this.ctx = this.canvas.getContext('2d');
+    /* willReadFrequently: the alpha mask below re-reads this canvas with
+       getImageData() twice a second, which otherwise forces a GPU->CPU
+       readback every time (and a console warning in Chrome). */
+    this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
     this.ctx.imageSmoothingEnabled = false;
     this.el.appendChild(this.canvas);
 
@@ -264,6 +272,10 @@
     this._drag = null;
     this.el.style.transition = '';
     this._swallow = performance.now() + 600;
+    /* Every press must end somewhere, tap included: the tap branch below fires
+       onClick and never onDrop, so a listener that claimed ownership on press
+       (behaviors.js sets mode='held' there) had nothing to release it. */
+    if (this.onRelease) this.onRelease();
     if (!d.moved) {
       /* a tap, not a drag */
       this._setCursor('grab');
@@ -287,11 +299,18 @@
         this._cursorWas = root.style.cursor || '';
         this._cursorSet = true;
       }
+      this._cursorKind = kind;
       if (root.style.cursor !== kind) root.style.cursor = kind;
     } else if (this._cursorSet) {
-      root.style.cursor = this._cursorWas;
+      /* Only take our own value back off again.  A page that set a cursor of
+         its own while we were showing 'grab' must keep it — blindly restoring
+         the saved string clobbered it. */
+      if (!this._cursorKind || root.style.cursor === this._cursorKind) {
+        root.style.cursor = this._cursorWas;
+      }
       this._cursorSet = false;
       this._cursorWas = undefined;
+      this._cursorKind = undefined;
     }
   };
 
@@ -345,9 +364,13 @@
     this.vy = -9;
   };
 
+  /* Timed on the bot's own clock (this.t), not wall time: tick() only advances
+   * `t` while frames are actually being rendered, so a tab that sat hidden for
+   * two minutes no longer resumes with the arm stuck in the wave pose for two
+   * minutes' worth of frames. */
   PixelBot.prototype.wave = function (ms) {
     ms = ms || 1600;
-    this._waveT = { start: performance.now(), dur: ms };
+    this._waveT = { start: this.t, until: this.t + ms / 1000 };
   };
 
   PixelBot.prototype.bump = function (dir) {
@@ -356,18 +379,33 @@
     this.vx = this._bumpDir * 4;
   };
 
-  /* Kung-fu action timelines.  Each is a list of [elapsedMs, armState]
-   * keyframes plus a total duration, so a skin can break into a short routine
-   * of poses without any per-frame logic in the art.
-   *   punch  — guard, jab, guard, cross, guard
-   *   bounce — paws up, riding the jump arc
-   *   crane  — guard, one-legged crane stance, guard
-   */
+  /* Action timelines.  Each is a list of [elapsedMs, armState] keyframes plus
+   * a total duration, so a skin can break into a short routine of poses without
+   * any per-frame logic in the art.  `hop: true` marks a routine that actually
+   * leaves the ground — the behaviour fires jump() for those (see _doAction),
+   * which is what makes it an arc instead of a pose.
+   *   punch   — guard, jab, guard, cross, guard     (panda kung fu)
+   *   bounce  — paws up, riding the jump arc        (panda, hops)
+   *   crane   — guard, one-legged crane stance, guard (panda kung fu)
+   *   stretch — down, arms up, hold, down           (Oyen's only exercise)
+   *   salute  — paw to the brim, hold, home         (scout pup, hops)
+   *   spit    — lean and fire a volley of seeds     (watermelon)
+   *
+   * A skin opts in with `actions: ['name', ...]`; anything else never fires. */
   var ACTIONS = {
     punch:  { dur: 1500, keys: [[0, 'guard'], [260, 'punchA'], [520, 'guard'],
                                 [780, 'punchB'], [1040, 'guard']] },
-    bounce: { dur: 1200, keys: [[0, 'up'], [820, 'up'], [980, 'down']] },
-    crane:  { dur: 1700, keys: [[0, 'guard'], [500, 'crane'], [1300, 'guard']] }
+    bounce: { dur: 1200, hop: true,
+              keys: [[0, 'up'], [820, 'up'], [980, 'down']] },
+    crane:  { dur: 1700, keys: [[0, 'guard'], [500, 'crane'], [1300, 'guard']] },
+    stretch: { dur: 1600,
+               keys: [[0, 'down'], [320, 'up'], [1240, 'up'], [1500, 'down']] },
+    salute: { dur: 1500, hop: true,
+              keys: [[0, 'down'], [240, 'salute'], [1180, 'salute'],
+                     [1400, 'down']] },
+    spit:   { dur: 1600,
+              keys: [[0, 'down'], [220, 'guard'], [1380, 'guard'],
+                     [1580, 'down']] }
   };
 
   /* Start an action; returns its duration in ms (0 if unknown). */
@@ -376,6 +414,10 @@
     if (!def) return 0;
     this.action = { name: name, t0: this.t * 1000 };
     this.armState = def.keys[0][1];
+    /* Whether this routine is a real hop.  The behaviour used to test for the
+       literal name 'bounce', which quietly limited the air to the panda; now
+       any skin can declare one. */
+    this.actionHops = def.hop === true;
     return def.dur;
   };
 
@@ -415,17 +457,26 @@
     var ctx = this.ctx;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    /* Blink scheduling. */
-    var face = this.face;
-    if (this.held) face = 'surprise';
-    else if (this.t > this._blinkAt) {
-      face = 'blink';
-      this._blinkAt = this.t + (700 + Math.random() * 1800);
+    /* Blink scheduling.  A blink is a short *window*, not a single frame: one
+       frame at 60fps reads as a rendering glitch rather than a blink, and it
+       flickered the mouth with it, because `face` also drove the mouth below.
+       The mood is what the behaviour asked for; the blink only overrides the
+       eyes. */
+    var mood = this.face;
+    var face = mood;
+    if (this.held) {
+      face = 'surprise';
+    } else {
+      if (this.t > this._blinkAt) {
+        this._blinkUntil = this.t + 0.12;             // ~7 frames at 60fps
+        this._blinkAt = this.t + 0.7 + Math.random() * 1.8;
+      }
+      if (this.t < this._blinkUntil) face = 'blink';
     }
 
     var mouth = 'normal';
     if (this.held || this.state === 'jump' || this.state === 'fall') mouth = 'o';
-    else if (this.state === 'sit' || face === 'happy' || face === 'love')
+    else if (this.state === 'sit' || mood === 'happy' || mood === 'love')
       mouth = 'smile';
 
     var arm = 'down';
@@ -446,9 +497,9 @@
       }
     }
     if (!this.action && !this.held) {
-      if (this._waveT && this.t * 1000 < this._waveT.start + this._waveT.dur) {
+      if (this._waveT && this.t < this._waveT.until) {
         arm = 'wave';
-        wave = (this.t * 1000 - this._waveT.start) / 1200;
+        wave = (this.t - this._waveT.start) / 1.2;
       } else if (this.state === 'idle' || this.state === 'sit') {
         arm = (Math.sin(this.t * 0.7) > 0.6) ? 'up' : 'down';
       }

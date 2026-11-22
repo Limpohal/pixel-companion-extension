@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="system">
 <head>
   <meta charset="utf-8">
   <title>Pixel Companion</title>
@@ -11,6 +11,14 @@
     <div class="head-txt">
       <h1>Pixel Companion</h1>
       <p class="sub">A tiny bot patrolling your browser.</p>
+      <div class="theme-seg" id="themeSeg" role="group" aria-label="Theme">
+        <button type="button" data-theme="system" aria-pressed="true"
+                title="Follow the system setting">Auto</button>
+        <button type="button" data-theme="light" aria-pressed="false"
+                title="Light theme" aria-label="Light theme">☀</button>
+        <button type="button" data-theme="dark" aria-pressed="false"
+                title="Dark theme" aria-label="Dark theme">🌙</button>
+      </div>
     </div>
   </header>
 
@@ -28,7 +36,11 @@
   </section>
 
   <section class="card">
-    <div class="label" style="padding-bottom:4px;">Character</div>
+    <div class="card-head">
+      <div class="label">Character</div>
+      <button type="button" class="shuffle" id="shuffle"
+              aria-label="Surprise me — pick a random character">🎲 Surprise me</button>
+    </div>
     <div class="char-grid" id="charGrid"></div>
   </section>
 
@@ -47,7 +59,7 @@
     <div class="row">
       <div>
         <div class="label">Size</div>
-        <div class="hint" id="sizeVal">4 px · small-ish</div>
+        <div class="hint" id="sizeVal">4 px · cozy</div>
       </div>
       <input type="range" id="size" min="2" max="10" step="1" value="4">
     </div>
@@ -84,9 +96,12 @@
   </section>
 
   <p class="foot">
-    Click the bot to make it jump. Move your mouse near it — it waves.<br>
+    Click the bot and it boings. Hover over it and it waves.<br>
     Scroll long pages: it may ride the scrollbar. 🎈
   </p>
+
+  <!-- announces the shuffle result to screen readers without showing it -->
+  <span id="picked" class="sr-only" aria-live="polite"></span>
 
   <!-- shared renderer: single source of truth (was a hand-synced copy) -->
   <script src="../content/art.js"></script>

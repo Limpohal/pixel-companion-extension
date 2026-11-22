@@ -86,6 +86,78 @@
     ]
   };
 
+  /* One big shiny eye for the newer characters: an 8x8 dark mass, with a
+     2x2 glint and a 1x1 sparkle painted on top by each skin (the shared eye
+     step can only draw a single colour).  Size is the whole point — at the
+     picker's 44px a small pupil vanishes completely and the face reads as a
+     blob with two specks. */
+  var CUTE_EYES = {
+    normal: [
+      [2,0],[3,0],[4,0],[5,0],
+      [1,1],[2,1],[3,1],[4,1],[5,1],[6,1],
+      [0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[7,2],
+      [0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],
+      [0,4],[1,4],[2,4],[3,4],[4,4],[5,4],[6,4],[7,4],
+      [0,5],[1,5],[2,5],[3,5],[4,5],[5,5],[6,5],[7,5],
+      [1,6],[2,6],[3,6],[4,6],[5,6],[6,6],
+      [2,7],[3,7],[4,7],[5,7]
+    ],
+    blink: [
+      [0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],[7,0],
+      [1,1],[2,1],[3,1],[4,1],[5,1],[6,1]
+    ],
+    happy: [
+      [2,0],[3,0],[4,0],[5,0],
+      [1,1],[6,1],
+      [0,2],[7,2]
+    ],
+    surprise: [
+      [2,0],[3,0],[4,0],[5,0],
+      [1,1],[2,1],[3,1],[4,1],[5,1],[6,1],
+      [0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[7,2],
+      [0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],
+      [0,4],[1,4],[2,4],[3,4],[4,4],[5,4],[6,4],[7,4],
+      [0,5],[1,5],[2,5],[3,5],[4,5],[5,5],[6,5],[7,5],
+      [0,6],[1,6],[2,6],[3,6],[4,6],[5,6],[6,6],[7,6],
+      [1,7],[2,7],[3,7],[4,7],[5,7],[6,7],
+      [2,8],[3,8],[4,8],[5,8]
+    ],
+    love: [
+      [1,0],[2,0],[5,0],[6,0],
+      [0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1],
+      [0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[7,2],
+      [0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],
+      [1,4],[2,4],[3,4],[4,4],[5,4],[6,4],
+      [2,5],[3,5],[4,5],[5,5]
+    ]
+  };
+
+  /* Closed, content eyes for Scout Pup (option "closed happy"): soft arcs at
+     rest, a short line on blink, and an open oval only when startled — so the
+     resting face never stares.  Seven-pixel footprint, so the eye anchors stay
+     symmetric around the sprite axis. */
+  var HAPPY_EYES = {
+    normal: [
+      [2,1],[3,1],[4,1],[1,2],[5,2]
+    ],
+    blink: [
+      [2,2],[3,2],[4,2]
+    ],
+    happy: [
+      [2,1],[3,1],[4,1],[1,2],[5,2]
+    ],
+    surprise: [
+      [2,0],[3,0],[4,0],
+      [1,1],[2,1],[3,1],[4,1],[5,1],
+      [1,2],[2,2],[3,2],[4,2],[5,2],
+      [1,3],[2,3],[3,3],[4,3],[5,3],
+      [2,4],[3,4],[4,4]
+    ],
+    love: [
+      [2,1],[3,1],[4,1],[1,2],[5,2]
+    ]
+  };
+
   /* Mouth shapes relative to the mouth origin. */
   var MOUTHS = {
     normal: [
@@ -336,9 +408,9 @@
 
     panda: {
       label: 'Panda',
-      col: { body: '#fbfcfd', bodyDk: '#e3e9ef', eye: '#242a33', cheek: '#f7b8c8',
-             foot: '#242a33', footDk: '#151a21', mouth: '#242a33',
-             arm: '#242a33', armDk: '#151a21' },
+      col: { body: '#fbfcfd', bodyDk: '#e3e9ef', eye: '#2b313b', cheek: '#f7b8c8',
+             foot: '#2b313b', footDk: '#1c222b', mouth: '#2b313b',
+             arm: '#2b313b', armDk: '#1c222b' },
       feet: true, antenna: false, panel: false,
       customBody: true,
       customFace: true,
@@ -352,8 +424,8 @@
       hw: function (dy) {
         var head = 1 - Math.pow((dy - 9) / 15, 2);
         var belly = 1 - Math.pow((dy - 22) / 17, 2);
-        var h = head > 0 ? 19 * Math.sqrt(head) : 0;
-        var b = belly > 0 ? 24 * Math.sqrt(belly) : 0;
+        var h = head > 0 ? 18 * Math.sqrt(head) : 0;
+        var b = belly > 0 ? 22 * Math.sqrt(belly) : 0;
         return Math.round(Math.max(h, b));
       },
       body: function (ctx, by) {
@@ -373,7 +445,7 @@
          is derived from the left (64 - x - w) — it used to be hard-coded at
          x37, which put the pair 1.5px off centre. */
       drawLegs: function (ctx, swing, col, by, opts) {
-        var ink = '#242a33', gloss = '#3a414c';
+        var ink = '#2b313b', gloss = '#414a57';
         var arm = (opts && opts.arm) || 'down';
         if (arm === 'crane') {
           roundedRect(ctx, 12, by + 34, 14, 10, 4, ink);     // planted leg
@@ -395,10 +467,10 @@
       extraBehind: function (ctx, by) {
         /* Big round ears on the crown, with a soft inner shade — small square
            ears were one of the things that read as "unfinished". */
-        roundedRect(ctx, 17, by - 9, 13, 13, 6, '#242a33');
-        roundedRect(ctx, 34, by - 9, 13, 13, 6, '#242a33');
-        roundedRect(ctx, 20, by - 6, 7, 7, 3, '#3a414c');
-        roundedRect(ctx, 37, by - 6, 7, 7, 3, '#3a414c');
+        roundedRect(ctx, 17, by - 9, 13, 13, 6, '#2b313b');
+        roundedRect(ctx, 34, by - 9, 13, 13, 6, '#2b313b');
+        roundedRect(ctx, 20, by - 6, 7, 7, 3, '#414a57');
+        roundedRect(ctx, 37, by - 6, 7, 7, 3, '#414a57');
       },
       extraUnder: function (ctx, by) {
         /* Soft muzzle first, so the patches are not sliced off by a straight
@@ -417,8 +489,8 @@
         ];
         for (var i = 0; i < rows.length; i++) {
           var r = rows[i];
-          rect(ctx, r[1], by + r[0], r[2], 1, '#242a33');
-          rect(ctx, 64 - r[1] - r[2], by + r[0], r[2], 1, '#242a33');
+          rect(ctx, r[1], by + r[0], r[2], 1, '#2b313b');
+          rect(ctx, 64 - r[1] - r[2], by + r[0], r[2], 1, '#2b313b');
         }
       },
       extraBack: function (ctx, by, opts) {
@@ -438,41 +510,43 @@
          that makes an eye alive: something to focus with.  One pixel of iris
          ring plus one pixel of sclera is enough at this size. */
       face: function (ctx, by, faceLike, opts) {
-        var ink = '#242a33';
+        var ink = '#2b313b';
         var sclera = '#fffdf5';
-        var iris = '#6f9a5a';
-        var pupil = '#12161c';
+        var pupil = '#171b22';
         var blush = '#f4b8c2';
         /* mid kung-fu he shouts rather than smiles */
         var fighting = (opts.arm === 'guard' || opts.arm === 'punchA' ||
                         opts.arm === 'punchB' || opts.arm === 'crane');
-        /* one disc of any size, inset per row so the corners round off */
-        var disc = function (x, dy, n, col) {
-          var insets = (n >= 7) ? [2, 1, 0, 0, 0, 1, 2] : [1, 0, 0, 0, 1];
-          for (var r = 0; r < n; r++) {
-            rect(ctx, x + insets[r], by + dy + r, n - insets[r] * 2, 1, col);
-          }
+        /* Natural panda eyes: a small dark eye sitting in the patch, not the
+           old 7x7 pale disc with a green iris and a 2px pupil.  That big
+           eyeball with a pinprick pupil is the "staring" look people called
+           unsettling.  Happy/love use a soft closed arc, so the picker and the
+           idle animation read friendly rather than wide-eyed. */
+        /* Happy/love: the roster's usual closed chevron, drawn warm.
+           Anything else: a cream eye with a 3x3 pupil and a glint.  No iris
+           ring, no pinprick pupil — that combination was the stare. */
+        var eyeHappy = function (x) {
+          rect(ctx, x + 2, by + 8, 2, 1, sclera);
+          rect(ctx, x + 1, by + 9, 1, 1, sclera);
+          rect(ctx, x + 4, by + 9, 1, 1, sclera);
+          rect(ctx, x, by + 10, 1, 1, sclera);
+          rect(ctx, x + 5, by + 10, 1, 1, sclera);
         };
         if (faceLike === 'blink') {
-          /* closed: a soft cream line */
-          rect(ctx, 19, by + 8, 6, 1, sclera);
-          rect(ctx, 39, by + 8, 6, 1, sclera);
+          rect(ctx, 19, by + 9, 5, 1, sclera);
+          rect(ctx, 40, by + 9, 5, 1, sclera);
+        } else if (faceLike === 'surprise') {
+          /* only a startle pulls the eyes open; even then they stay narrow */
+          roundedRect(ctx, 18, by + 5, 7, 7, 3, sclera);
+          roundedRect(ctx, 39, by + 5, 7, 7, 3, sclera);
+          rect(ctx, 21, by + 8, 1, 2, pupil);
+          rect(ctx, 42, by + 8, 1, 2, pupil);
         } else {
-          /* 7x7 sclera -> 5x5 iris -> 2x2 pupil, with the highlight
-             up-and-left of the pupil (same side on both eyes) */
-          disc(18, 5, 7, sclera);
-          disc(39, 5, 7, sclera);
-          disc(19, 6, 5, iris);
-          disc(40, 6, 5, iris);
-          if (faceLike === 'surprise') {
-            rect(ctx, 21, by + 8, 1, 1, pupil);        // tiny pupil = startled
-            rect(ctx, 41, by + 8, 1, 1, pupil);
-          } else {
-            rect(ctx, 21, by + 8, 2, 2, pupil);
-            rect(ctx, 41, by + 8, 2, 2, pupil);
-          }
-          rect(ctx, 20, by + 7, 1, 1, sclera);         // highlight
-          rect(ctx, 40, by + 7, 1, 1, sclera);
+          /* Content: the resting panda has soft closed eyes.  Big round eyes
+             with small centred pupils read as a stare; closing them for idle,
+             happy and love removes that entirely. */
+          eyeHappy(19);
+          eyeHappy(39);
         }
         /* soft blush on the cheeks */
         if (faceLike !== 'blink') {
@@ -531,73 +605,73 @@
            these would give him a third one. */
         var armState = (opts && opts.arm) || 'down';
         if (armState === 'down') {
-          roundedRect(ctx, 5, by + 14, 12, 19, 5, '#242a33');
-          roundedRect(ctx, 47, by + 14, 12, 19, 5, '#242a33');
-          rect(ctx, 6, by + 16, 2, 15, '#3a414c');
-          rect(ctx, 48, by + 16, 2, 15, '#3a414c');
+          roundedRect(ctx, 6, by + 15, 11, 18, 5, '#2b313b');
+          roundedRect(ctx, 47, by + 15, 11, 18, 5, '#2b313b');
+          rect(ctx, 7, by + 17, 2, 14, '#414a57');
+          rect(ctx, 48, by + 17, 2, 14, '#414a57');
         }
       }
     },
 
     butterfly: {
+      /* Black-and-yellow mascot butterfly: a chunky yellow body under two big
+         soft black wings with yellow spots.  Two wings and no feelers on
+         purpose — the old four-winged, antennaed version read as an insect
+         rather than a plush. */
       label: 'Butterfly',
-      col: { body: '#8e7cc3', bodyDk: '#6f5da3', eye: '#2b2b33', cheek: '#f7a8c3',
-             foot: '#6f5da3', footDk: '#5a4a85', mouth: '#2b2b33',
-             arm: '#8e7cc3', armDk: '#6f5da3' },
+      col: { body: '#ffcf3f', bodyDk: '#e0ad1f', eye: '#2a2530',
+             cheek: '#f7a8c3', foot: '#2a2530', footDk: '#171420',
+             mouth: '#2a2530', arm: '#ffcf3f', armDk: '#e0ad1f' },
       feet: true, antenna: false, panel: false,
-      /* Chubby mascot, not an insect: a 32px body against the standard 48 (it
-         used to be a 24px thorax) with the usual stubby boots.  It is not
-         wider than 32 because the wings need the side room — at 36 they were
-         almost entirely hidden behind it. */
-      bodyInset: 8,
-      eyes: EYES, eyeW: 6,
-      eyeY: 21, eye1X: 24, eye2X: 34,
-      mouthY: 34,
-      cheekX: [18, 42], cheekY: 26,
+      bodyInset: 11,
+      eyes: CUTE_EYES, eyeW: 8,
+      eyeY: 20, eye1X: 21, eye2X: 35,
+      mouthY: 33,
+      cheekX: [20, 42], cheekY: 26,
       defaultFace: 'happy',
       cheekFaces: { happy: 1, love: 1, normal: 1 },
       extraBehind: function (ctx, by, opts) {
-        /* Four wings flaring out from behind the body — two tall upper, two
-           round lower — with a soft mid-tone edge instead of the old hard dark
-           rim.  Each is a rounded stadium so it reads as a wing rather than a
-           tapered slab. */
+        var ink = '#2a2530', spot = '#ffd84d';
         var lift = (opts.arm === 'wave') ? 2 : 0;
-        var rim = '#9d8ede', wing = '#7ec8f7';
-        var wings = [
-          [0, by - 12 - lift, 18, 26, 9],    // upper wing: tall, reaches up
-          [2, by + 14, 18, 20, 9]            // lower wing: rounder
-        ];
-        var i, p, mx;
-        for (i = 0; i < wings.length; i++) {          // soft edge
-          p = wings[i];
-          roundedRect(ctx, p[0], p[1], p[2], p[3], p[4], rim);
-          roundedRect(ctx, 64 - p[0] - p[2], p[1], p[2], p[3], p[4], rim);
-        }
-        for (i = 0; i < wings.length; i++) {          // wing colour
-          p = wings[i];
-          mx = 64 - p[0] - p[2] + 2;
-          roundedRect(ctx, p[0] + 2, p[1] + 2, p[2] - 4, p[3] - 4,
-                      Math.max(2, p[4] - 2), wing);
-          roundedRect(ctx, mx, p[1] + 2, p[2] - 4, p[3] - 4,
-                      Math.max(2, p[4] - 2), wing);
-        }
-        /* one marking per wing: cream spot above, pink patch below */
-        roundedRect(ctx, 4, by - 8 - lift, 7, 7, 3, '#fdf6e3');
-        roundedRect(ctx, 53, by - 8 - lift, 7, 7, 3, '#fdf6e3');
-        roundedRect(ctx, 5, by + 20, 9, 9, 4, '#f7a8c3');
-        roundedRect(ctx, 50, by + 20, 9, 9, 4, '#f7a8c3');
-        roundedRect(ctx, 7, by + 22, 4, 4, 2, '#fdf6e3');
-        roundedRect(ctx, 53, by + 22, 4, 4, 2, '#fdf6e3');
+        /* the wings breathe with the walk cycle */
+        var flap = Math.round(Math.sin((opts.phase || 0) * Math.PI * 2) * 1);
+        /* Wings start just above the shoulders rather than above the head:
+           rising 12px above a round head made them read as ears. */
+        var y0 = Math.max(0, by - 4 - lift + flap);
+        /* Exactly two wings — one big soft capsule per side.  A yellow rim
+           keeps the black panel from reading as a separate blob, and the
+           previous four-winged, antennaed version is what read as an insect. */
+        /* The wing flares outward toward the bottom (narrow shoulder, wide
+           hindwing).  A straight capsule read as an ear beside the round body. */
+        roundedRect(ctx, 2, y0, 22, 20, 11, ink);
+        roundedRect(ctx, 0, y0 + 14, 24, 28, 12, ink);
+        roundedRect(ctx, 40, y0, 22, 20, 11, ink);
+        roundedRect(ctx, 40, y0 + 14, 24, 28, 12, ink);
+        /* yellow spots: small near the shoulder, a big one on the hindwing */
+        roundedRect(ctx, 8, y0 + 5, 5, 5, 2, spot);
+        roundedRect(ctx, 51, y0 + 5, 5, 5, 2, spot);
+        roundedRect(ctx, 4, y0 + 17, 10, 12, 5, spot);
+        roundedRect(ctx, 50, y0 + 17, 10, 12, 5, spot);
+        roundedRect(ctx, 8, y0 + 33, 5, 5, 2, spot);
+        roundedRect(ctx, 51, y0 + 33, 5, 5, 2, spot);
       },
       extraOver: function (ctx, by, opts) {
-        /* short soft feelers — no knobs on the ends */
-        roundedRect(ctx, 26, by - 7, 3, 8, 1, '#6f5da3');
-        roundedRect(ctx, 26, by - 8, 3, 2, 1, '#a795e0');
-        roundedRect(ctx, 35, by - 7, 3, 8, 1, '#6f5da3');
-        roundedRect(ctx, 35, by - 8, 3, 2, 1, '#a795e0');
+        var shine = '#fffdf5';
+        /* eye shine, only where an eye is actually open */
+        if (opts.face !== 'happy' && opts.face !== 'blink' &&
+            opts.face !== 'love') {
+          rect(ctx, 23, by + 10, 2, 2, shine);
+          rect(ctx, 26, by + 13, 1, 1, shine);
+          rect(ctx, 37, by + 10, 2, 2, shine);
+          rect(ctx, 40, by + 13, 1, 1, shine);
+        }
+        /* lift the shared flat mouth into a smile at rest */
+        if (opts.mouth !== 'o') {
+          rect(ctx, 28, by + 20, 1, 1, '#2a2530');
+          rect(ctx, 35, by + 20, 1, 1, '#2a2530');
+        }
       }
     },
-
     skye: {
       label: 'Aviator Pup',
       col: { body: '#f7b8cf', bodyDk: '#e193b4', eye: '#332433', cheek: '#f28ab8',
@@ -910,9 +984,15 @@
     },
 
     duck: {
-      /* Label is generic by design.  The ID stays `duck` because it is what is
-         persisted in pbc_settings.character — renaming it would silently reset
-         the choice for anyone who already picked this one. */
+      /* The ID stays `duck`: it is what is persisted in
+         pbc_settings.character, so renaming it would silently reset the choice
+         for anyone who already picked this one.
+
+         The display label is deliberately kept as 'Minion'.  The Oct 2026 audit
+         raised this as a trademark-risk item (the same class of risk that
+         renamed Paws Patrol -> Aviator Pup and Kaws -> X-Buddy in 394d39e); the
+         owner reviewed it and chose to keep the name.  Do not "fix" the
+         id/label mismatch without asking first. */
       label: 'Minion',
       col: { body: '#ffd633', bodyDk: '#e8bd1f', eye: '#171b21', cheek: '#f4b8c2',
              foot: '#232830', footDk: '#161a20', mouth: '#232830',
@@ -1023,6 +1103,350 @@
           rect(ctx, 45, by + 16, 1, 12, '#e8bd1f');
           roundedRect(ctx, 11, by + 25, 9, 10, 4, ink);
           roundedRect(ctx, 44, by + 25, 9, 10, 4, ink);
+        }
+      }
+    },
+
+    cat: {
+      /* The id stays `cat`; "Oyen" is the label — the Malay/Indonesian name for
+         a ginger cat.  Only ids are persisted, so the label can be renamed
+         later without resetting anyone's saved choice (see the note on `duck`).
+
+         Reshaped to read as a classic fat cartoon tabby: wide, rounded-tip
+         ears with a salmon inner (the old narrow stepped pair read as a
+         squirrel), a bigger cream muzzle with a cat nose, philtrum and "w"
+         mouth, and cheek tufts.  The eyes stay the big shiny pair — the
+         heavy-lidded variant was tried and read as smug.  The character and
+         the Oyen name stay original. */
+      label: 'Oyen',
+      col: { body: '#ec9134', bodyDk: '#c9701f', eye: '#4a2e14', cheek: '#f2a08a',
+             foot: '#ec9134', footDk: '#c9701f', mouth: '#7a4a22',
+             arm: '#ec9134', armDk: '#c9701f' },
+      feet: true, antenna: false, panel: false,
+      eyes: CUTE_EYES, eyeW: 8,
+      eyeY: 22, eye1X: 19, eye2X: 37,
+      mouthY: 34,
+      cheekFaces: {},
+      bodyInset: -1,                 // a slightly wider, chubbier chassis
+      actions: ['stretch'],
+      extraBehind: function (ctx, by) {
+        var fur = '#ec9134', stripe = '#c9701f';
+        /* striped tail up the right-hand side */
+        rect(ctx, 54, by + 30, 6, 6, fur);
+        rect(ctx, 57, by + 16, 5, 16, fur);
+        rect(ctx, 55, by + 9, 6, 8, fur);
+        rect(ctx, 58, by + 13, 2, 3, stripe);
+        rect(ctx, 58, by + 22, 2, 3, stripe);
+      },
+      /* Ears live over the head (extraBack), not behind it, so the wide base
+         is genuinely attached to the skull instead of floating past its
+         rounded corner. */
+      extraBack: function (ctx, by) {
+        var fur = '#ec9134', inner = '#f0a08f';
+        /* left ear: rounded tip, straight diagonals, 12px base */
+        rect(ctx, 14, by - 12, 2, 1, fur);
+        rect(ctx, 13, by - 11, 4, 3, fur);
+        rect(ctx, 12, by - 8, 6, 3, fur);
+        rect(ctx, 11, by - 5, 8, 3, fur);
+        rect(ctx, 10, by - 2, 10, 3, fur);
+        rect(ctx, 9, by + 1, 12, 3, fur);
+        /* salmon inner, 2px fur border all round */
+        rect(ctx, 14, by - 8, 2, 2, inner);
+        rect(ctx, 13, by - 6, 4, 2, inner);
+        rect(ctx, 12, by - 4, 6, 2, inner);
+        rect(ctx, 11, by - 2, 8, 2, inner);
+        /* right ear, mirrored around x = 32 */
+        rect(ctx, 48, by - 12, 2, 1, fur);
+        rect(ctx, 47, by - 11, 4, 3, fur);
+        rect(ctx, 46, by - 8, 6, 3, fur);
+        rect(ctx, 45, by - 5, 8, 3, fur);
+        rect(ctx, 44, by - 2, 10, 3, fur);
+        rect(ctx, 43, by + 1, 12, 3, fur);
+        rect(ctx, 48, by - 8, 2, 2, inner);
+        rect(ctx, 47, by - 6, 4, 2, inner);
+        rect(ctx, 46, by - 4, 6, 2, inner);
+        rect(ctx, 45, by - 2, 8, 2, inner);
+      },
+      extraUnder: function (ctx, by) {
+        /* wide cream muzzle: the old 12px patch was more chin than muzzle */
+        roundedRect(ctx, 23, by + 17, 18, 11, 5, '#f7e3c8');
+        rect(ctx, 27, by + 26, 10, 1, '#e7d2b4');   // soft chin line
+      },
+      extraOver: function (ctx, by, opts) {
+        var stripe = '#c9701f', fur = '#ec9134';
+        var ink = '#4a2e14';
+        /* forehead tabby "M" and cheek stripes */
+        rect(ctx, 26, by + 2, 2, 4, stripe);
+        rect(ctx, 31, by + 1, 2, 5, stripe);
+        rect(ctx, 36, by + 2, 2, 4, stripe);
+        rect(ctx, 9, by + 11, 6, 2, stripe);
+        rect(ctx, 9, by + 15, 6, 2, stripe);
+        rect(ctx, 49, by + 11, 6, 2, stripe);
+        rect(ctx, 49, by + 15, 6, 2, stripe);
+        /* cheek tufts: stepped points at muzzle height, so the head widens
+           into fat cheeks instead of sprouting tabs at eye level */
+        rect(ctx, 5, by + 18, 4, 2, fur);
+        rect(ctx, 4, by + 20, 3, 3, fur);
+        rect(ctx, 55, by + 18, 4, 2, fur);
+        rect(ctx, 57, by + 20, 3, 3, fur);
+        /* Big shiny eyes (the heavy half-lidded version read as smug).  A
+           glint and a small sparkle in the same corner of each eye; skipped
+           where the shared shape is a squint rather than an open eye. */
+        if (opts.face !== 'happy' && opts.face !== 'blink' &&
+            opts.face !== 'love') {
+          rect(ctx, 20, by + 11, 2, 2, '#fffdf5');
+          rect(ctx, 23, by + 14, 1, 1, '#fffdf5');
+          rect(ctx, 38, by + 11, 2, 2, '#fffdf5');
+          rect(ctx, 41, by + 14, 1, 1, '#fffdf5');
+        }
+        /* cat nose, philtrum and lifted mouth corners */
+        roundedRect(ctx, 29, by + 16, 6, 4, 2, '#e58aa0');
+        rect(ctx, 31, by + 20, 2, 2, ink);          // philtrum
+        rect(ctx, 28, by + 21, 1, 1, ink);          // upturned corners
+        rect(ctx, 35, by + 21, 1, 1, ink);
+        /* whiskers */
+        rect(ctx, 14, by + 20, 8, 1, '#a8672a');
+        rect(ctx, 14, by + 23, 8, 1, '#a8672a');
+        rect(ctx, 42, by + 20, 8, 1, '#a8672a');
+        rect(ctx, 42, by + 23, 8, 1, '#a8672a');
+        /* toe lines on the paws */
+        rect(ctx, 17, by + 39, 1, 3, stripe);
+        rect(ctx, 20, by + 39, 1, 3, stripe);
+        rect(ctx, 46, by + 39, 1, 3, stripe);
+        rect(ctx, 43, by + 39, 1, 3, stripe);
+        /* the reference's sparkles: lit only while he is showing off */
+        if (opts.action === 'stretch') {
+          rect(ctx, 4, by + 6, 6, 2, '#ffd166');
+          rect(ctx, 6, by + 4, 2, 6, '#ffd166');
+          rect(ctx, 54, by + 4, 6, 2, '#ffd166');
+          rect(ctx, 56, by + 2, 2, 6, '#ffd166');
+        }
+      }
+    },
+    scout: {
+      /* An original beagle scout: green campaign hat, red neckerchief, floppy
+         black ears.  The look is inspired by the idea of a scout pup; the
+         sprite is drawn from scratch and deliberately carries an original
+         name, because the store's IP rules are what renamed Paws Patrol ->
+         Aviator Pup and Kaws -> X-Buddy in 394d39e. */
+      label: 'Scout Pup',
+      col: { body: '#fbfaf5', bodyDk: '#e7e2d6', eye: '#231f28',
+             cheek: '#f3b3b8', foot: '#fbfaf5', footDk: '#ded8ca',
+             mouth: '#231f28', arm: '#fbfaf5', armDk: '#e7e2d6' },
+      feet: true, antenna: false, panel: false,
+      noArms: true,             // custom arms, so a salute can reach the brim
+      customBody: true,
+      eyes: HAPPY_EYES, eyeW: 7,
+      eyeY: 18, eye1X: 18, eye2X: 39,
+      mouthY: 38,
+      cheekX: [15, 47], cheekY: 29,
+      cheekFaces: { happy: 1, love: 1 },
+      actions: ['salute'],
+      body: function (ctx, by) {
+        var fur = '#fbfaf5', shade = '#e7e2d6', deep = '#d6d0c2';
+        /* one silhouette — big beagle head over a chubby body — so no step
+           shows at the neck */
+        roundedRect(ctx, 12, by - 2, 40, 26, 12, fur);
+        roundedRect(ctx, 15, by + 15, 34, 24, 12, fur);
+        rect(ctx, 47, by + 1, 3, 20, shade);            // head edge shade
+        rect(ctx, 45, by + 30, 3, 7, shade);            // body edge shade
+        rect(ctx, 19, by + 38, 26, 2, deep);            // soft underside
+      },
+      /* white paws with toe seams, stepping with the walk cycle */
+      drawLegs: function (ctx, swing, col, by) {
+        var paw = '#fbfaf5', pawDk = '#ded8ca';
+        var l1 = Math.round(swing * 2), l2 = Math.round(-swing * 2);
+        roundedRect(ctx, 16 + l1, by + 37, 12, 8, 4, paw);
+        roundedRect(ctx, 36 + l2, by + 37, 12, 8, 4, paw);
+        rect(ctx, 18 + l1, by + 43, 4, 1, pawDk);
+        rect(ctx, 38 + l2, by + 43, 4, 1, pawDk);
+      },
+      extraBehind: function (ctx, by) {
+        /* stubby tail curling up behind the body */
+        roundedRect(ctx, 46, by + 29, 9, 8, 3, '#fbfaf5');
+        roundedRect(ctx, 50, by + 25, 6, 8, 3, '#fbfaf5');
+        rect(ctx, 52, by + 27, 3, 2, '#e7e2d6');
+      },
+      extraUnder: function (ctx, by) {
+        var ear = '#1f1c24', earLt = '#332e38';
+        var scarf = '#d8402f', scarfLt = '#ef6a55', scarfDk = '#a82e22';
+        /* Floppy ears in FRONT of the head, hanging past the jaw.  Drawn
+           behind it they read as headphones; a beagle's ears fall forward
+           over the sides of the face. */
+        roundedRect(ctx, 2, by + 1, 11, 27, 5, ear);
+        roundedRect(ctx, 51, by + 1, 11, 27, 5, ear);
+        rect(ctx, 4, by + 3, 2, 17, earLt);
+        rect(ctx, 57, by + 3, 2, 17, earLt);
+        /* shadow where the head meets the body, so one white silhouette does
+           not read as a snowman */
+        rect(ctx, 18, by + 22, 28, 2, '#e7e2d6');
+        /* red neckerchief: band, knot, two short tails */
+        roundedRect(ctx, 14, by + 27, 36, 5, 2, scarf);
+        rect(ctx, 16, by + 27, 32, 2, scarfLt);
+        roundedRect(ctx, 28, by + 31, 9, 7, 3, scarf);
+        rect(ctx, 30, by + 32, 5, 2, scarfLt);
+        rect(ctx, 27, by + 35, 5, 8, scarfDk);
+        rect(ctx, 28, by + 36, 3, 6, scarf);
+        rect(ctx, 34, by + 35, 5, 8, scarfDk);
+        rect(ctx, 35, by + 36, 3, 6, scarf);
+      },
+      extraOver: function (ctx, by, opts) {
+        var fur = '#fbfaf5', shade = '#e7e2d6', ink = '#231f28';
+        var muzzle = '#f3eee2';
+        /* only the startled eyes are open, so only they get a catchlight */
+        if (opts.face === 'surprise') {
+          rect(ctx, 20, by + 7, 2, 2, '#fffdf5');
+          rect(ctx, 41, by + 7, 2, 2, '#fffdf5');
+        }
+        /* muzzle and the big black nose */
+        roundedRect(ctx, 23, by + 16, 18, 14, 6, muzzle);
+        rect(ctx, 23, by + 16, 18, 1, '#e9e1cf');
+        roundedRect(ctx, 27, by + 16, 10, 7, 3, ink);
+        rect(ctx, 29, by + 17, 3, 2, '#4a4550');
+        /* the shared mouth is a flat 6px line; lift its corners into a smile */
+        if (opts.mouth !== 'o') {
+          rect(ctx, 28, by + 25, 1, 1, ink);
+          rect(ctx, 35, by + 25, 1, 1, ink);
+        }
+        /* ---- scout hat: wide brim, creased crown, leather band ---- */
+        var hat = '#4f8f3f', hatDk = '#3b6b2f', hatLt = '#66a852';
+        var band = '#6b4a2a';
+        roundedRect(ctx, 18, by - 12, 28, 11, 4, hat);   // crown
+        rect(ctx, 21, by - 11, 3, 8, hatLt);             // left dent
+        rect(ctx, 40, by - 11, 3, 8, hatDk);             // right dent
+        rect(ctx, 31, by - 11, 2, 8, hatDk);             // centre crease
+        rect(ctx, 18, by - 5, 28, 3, band);              // leather band
+        rect(ctx, 24, by - 8, 3, 3, '#ffd166');          // badge
+        rect(ctx, 25, by - 9, 1, 1, '#fff3c4');
+        roundedRect(ctx, 6, by - 4, 52, 6, 3, hatDk);    // brim
+        rect(ctx, 8, by - 4, 48, 2, hatLt);              // brim top light
+        rect(ctx, 4, by - 6, 4, 4, hatDk);               // upturned left edge
+        rect(ctx, 56, by - 6, 4, 4, hatDk);
+        /* ---- arms last, so a saluting paw sits in front of the brim ---- */
+        var up = (opts.arm === 'up' || opts.arm === 'wave');
+        if (opts.arm === 'salute') {
+          rect(ctx, 10, by + 27, 5, 12, fur);            // left arm down
+          roundedRect(ctx, 9, by + 36, 7, 6, 3, shade);
+          rect(ctx, 14, by + 27, 1, 12, shade);          // seam against the body
+          rect(ctx, 47, by + 5, 5, 22, fur);             // right arm up
+          roundedRect(ctx, 43, by - 1, 10, 7, 3, fur);   // paw at the brim
+          rect(ctx, 43, by - 1, 10, 2, shade);
+          rect(ctx, 47, by + 5, 1, 22, shade);           // seam against the head
+        } else if (up) {
+          rect(ctx, 10, by + 21, 5, 13, fur);
+          roundedRect(ctx, 9, by + 17, 7, 6, 3, fur);
+          rect(ctx, 14, by + 21, 1, 13, shade);
+          rect(ctx, 48, by + 21, 5, 13, fur);
+          roundedRect(ctx, 47, by + 17, 7, 6, 3, fur);
+          rect(ctx, 48, by + 21, 1, 13, shade);
+          rect(ctx, 51, by + 18, 2, 5, shade);
+        } else {
+          rect(ctx, 11, by + 27, 5, 12, fur);
+          roundedRect(ctx, 10, by + 36, 7, 6, 3, shade);
+          rect(ctx, 15, by + 27, 1, 12, shade);
+          rect(ctx, 47, by + 27, 5, 12, fur);
+          roundedRect(ctx, 46, by + 36, 7, 6, 3, shade);
+          rect(ctx, 47, by + 27, 1, 12, shade);
+        }
+      }
+    },
+
+    melon: {
+      /* Original watermelon slice: dark outline, green rind, white pith, red
+         flesh and seeds.  No arms and no legs — a slice should not pretend to
+         be a person.  `float: true` is what makes behaviors.js bob it above
+         the floor and bounce when it travels; the 6-grid-px gap between the
+         rind and the shadow is the resting hover. */
+      label: 'Watermelon',
+      col: { body: '#ef4b63', bodyDk: '#d63a55', eye: '#2a1733',
+             cheek: '#f58fa0', foot: '#3f9b45', footDk: '#2c7a33',
+             mouth: '#46152a', arm: '#ef4b63', armDk: '#d63a55' },
+      feet: false, antenna: false, panel: false,
+      noArms: true,             // a slice has no arms, so no wave pose
+      float: true,              // hovers/bounces instead of walking
+      customBody: true,
+      eyes: CUTE_EYES, eyeW: 8,
+      eyeY: 20, eye1X: 20, eye2X: 36,
+      mouthY: 33,
+      cheekX: [14, 48], cheekY: 27,
+      cheekFaces: { happy: 1, love: 1 },
+      actions: ['spit'],
+      body: function (ctx, by) {
+        var flesh = '#ef4b63', fleshDk = '#d63a55';
+        var rind = '#3f9b45', rindDk = '#2c7a33', pith = '#f7f7ef';
+        var line = '#3b2444';
+        var apexY = by - 9, baseY = by + 26, half, y, t;
+        /* rind stack first: dark outline, green rind, thin white pith */
+        roundedRect(ctx, 2, by + 26, 60, 14, 5, line);
+        roundedRect(ctx, 3, by + 27, 58, 11, 4, rind);
+        rect(ctx, 5, by + 35, 54, 2, rindDk);
+        roundedRect(ctx, 4, by + 24, 56, 6, 3, pith);
+        /* flesh triangle: outline row by row, then the fill one pixel in, so
+           both slanted edges stay a clean single pixel at every size */
+        for (y = apexY; y <= baseY; y++) {
+          t = (y - apexY) / (baseY - apexY);
+          half = 3 + Math.round(t * 24);
+          rect(ctx, 32 - half - 1, y, half * 2 + 2, 1, line);
+        }
+        for (y = apexY + 1; y < baseY; y++) {
+          t = (y - apexY) / (baseY - apexY);
+          half = 3 + Math.round(t * 24) - 1;
+          if (half < 1) continue;
+          rect(ctx, 32 - half, y, half * 2, 1, flesh);
+        }
+        /* a soft shade down the right flank */
+        for (y = apexY + 4; y < baseY - 2; y++) {
+          t = (y - apexY) / (baseY - apexY);
+          half = 3 + Math.round(t * 24) - 1;
+          if (half > 7) rect(ctx, 32 + half - 3, y, 3, 1, fleshDk);
+        }
+        /* seeds, 2x4 so they survive the picker's 0.7 scale, kept clear of
+           the face (eyes x20-44 y20-28, mouth x28-36 y31-37) */
+        var seed = '#2a1733', seedHi = '#4a2a55';
+        function pip(x, yy) {
+          rect(ctx, x, yy, 2, 4, seed);
+          rect(ctx, x, yy, 1, 1, seedHi);
+        }
+        pip(29, by - 5); pip(34, by - 4);
+        pip(25, by); pip(39, by + 1);
+        pip(17, by + 3); pip(46, by + 6);
+        pip(16, by + 12); pip(47, by + 11);
+        pip(13, by + 19); pip(50, by + 19);
+      },
+      extraOver: function (ctx, by, opts) {
+        var dark = '#46152a';
+        /* eye shine, only where an eye is actually open */
+        if (opts.face !== 'happy' && opts.face !== 'blink' &&
+            opts.face !== 'love') {
+          rect(ctx, 22, by + 10, 2, 2, '#fffdf5');
+          rect(ctx, 25, by + 13, 1, 1, '#fffdf5');
+          rect(ctx, 38, by + 10, 2, 2, '#fffdf5');
+          rect(ctx, 41, by + 13, 1, 1, '#fffdf5');
+        }
+        /* open smiling mouth with a tongue, drawn over the shared flat mouth:
+           wide top lip, tapered chin, then the tongue on the dark interior */
+        if (opts.mouth === 'o') {
+          roundedRect(ctx, 30, by + 18, 5, 7, 2, dark);
+        } else {
+          rect(ctx, 28, by + 18, 8, 1, dark);
+          rect(ctx, 27, by + 19, 10, 1, dark);
+          rect(ctx, 28, by + 20, 8, 1, dark);
+          rect(ctx, 29, by + 21, 6, 1, dark);
+          rect(ctx, 30, by + 22, 4, 1, dark);
+          rect(ctx, 30, by + 20, 4, 2, '#ff8fa3');
+          rect(ctx, 26, by + 18, 1, 2, dark);        // lifted corners
+          rect(ctx, 37, by + 18, 1, 2, dark);
+        }
+        /* ---- seed spit, with a puckered mouth ---- */
+        if (opts.action === 'spit') {
+          roundedRect(ctx, 30, by + 17, 5, 6, 2, dark);
+          var seed = '#2a1733';
+          rect(ctx, 38, by + 13, 3, 2, seed);
+          rect(ctx, 45, by + 9, 3, 2, seed);
+          rect(ctx, 52, by + 5, 3, 2, seed);
+          rect(ctx, 40, by + 11, 7, 1, '#f7f7ef');
+          rect(ctx, 47, by + 7, 7, 1, '#f7f7ef');
+          rect(ctx, 54, by + 4, 5, 1, '#f7f7ef');
         }
       }
     }
@@ -1305,6 +1729,13 @@
       rect(ctx, 53, by + 12, 11, 4, armCol);
       rect(ctx, 0, by + 10, 5, 8, armCol);
       rect(ctx, 59, by + 10, 5, 8, armCol);
+    } else if (arm === 'salute') {
+      /* left arm at the side, right paw snapped up to the brim */
+      rect(ctx, bx - 2, by + 8, 4, 12, armCol);
+      rect(ctx, bx - 3, by + 18, 6, 4, armCol);
+      rect(ctx, bx + bw - 4, by - 6, 4, 20, armCol);
+      rect(ctx, bx + bw - 8, by - 9, 9, 5, armCol);
+      rect(ctx, bx + bw - 8, by - 9, 9, 2, armDk);
     } else if (arm === 'up' || arm === 'wave') {
       rect(ctx, bx - 2, by - 4, 4, 12, armCol);
       rect(ctx, bx - 3, by - 6, 6, 4, armCol);
@@ -1318,10 +1749,14 @@
         rect(ctx, rx - 1, by - 6, 6, 4, armCol);
       }
     } else {
-      rect(ctx, bx - 2, G.armY, 4, 10, armCol);
-      rect(ctx, bx - 3, G.armY + 8, 5, 3, armDk);
-      rect(ctx, bx + bw - 2, G.armY, 4, 10, armCol);
-      rect(ctx, bx + bw - 2, G.armY + 8, 5, 3, armDk);
+      /* Anchored to the body's current y, like every pose above: the absolute
+         G.armY left the resting arms hanging in place while the body bobbed up
+         to 2px on each stride. */
+      var ay = by + (G.armY - G.bodyY);
+      rect(ctx, bx - 2, ay, 4, 10, armCol);
+      rect(ctx, bx - 3, ay + 8, 5, 3, armDk);
+      rect(ctx, bx + bw - 2, ay, 4, 10, armCol);
+      rect(ctx, bx + bw - 2, ay + 8, 5, 3, armDk);
     }
   }
 
@@ -1341,7 +1776,8 @@
       'bot', 'snowman', 'capy',           // row 1
       'elephant', 'shark', 'duck',        // row 2
       'koala', 'panda', 'butterfly',      // row 3
-      'skye', 'xbuddy', 'sunflower'       // row 4
+      'skye', 'xbuddy', 'sunflower',      // row 4
+      'cat', 'scout', 'melon'             // row 5
     ],
     skinLabel: function (id) {
       return (SKINS[id] && SKINS[id].label) || id;
