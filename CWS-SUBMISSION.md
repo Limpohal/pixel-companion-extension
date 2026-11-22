@@ -173,6 +173,23 @@ All fields below are answered as strictly as the form allows.
 | **ActiveTab permission justification** | `Used only by the popup to read the current tab's URL so the per-site on/off toggle applies to the site being viewed. No content is read or modified.` |
 | **Content script justification** | `Injects the visual character element and its animation logic into web pages. It does not read page content, modify the DOM beyond its own element, or communicate with any server.` |
 
+**Host permission justification** (its own field in the console, because the
+content script matches every http/https page) — paste this (996 chars, limit
+1,000):
+
+```
+Pixel Companion's single purpose is to show an animated companion on the web page the user is viewing, so its content script must match all HTTP and HTTPS pages. They are content_scripts matches (not host_permissions), run at document_idle, and are limited to http/https (not file:// or chrome://).
+
+It injects one isolated fixed-position element (canvas sprite plus optional speech bubble) and listens only to pointer position, clicks, scroll and resize, so the character can walk, react and ride the scrollbar. It reads only the page's scroll metrics (scrollHeight/scrollTop) to place that element. It never reads or transmits page content (no text, forms, cookies or site data), never modifies the DOM beyond its own element, and never contacts a server; sound is synthesized locally.
+
+It cannot be narrowed without breaking the feature: the companion appears automatically on every page with no user gesture, so activeTab cannot cover it and a fixed site list would defeat the single purpose.
+```
+
+> Broad host permissions trigger the *"may require an in-depth review which
+> will delay publishing"* warning. That is expected for a
+> runs-on-every-page companion; this justification is what reviewers use to
+> clear it, so keep it factual and consistent with the manifest.
+
 Do **not** declare any of the four data categories (personally identifiable,
 health, financial, etc.) — the extension genuinely collects none of it.
 
