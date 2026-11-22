@@ -256,10 +256,14 @@ ok('privacy policy names storage and activeTab',
 ok('privacy policy claims no data collection',
    /no user data|No data collection/i.test(privacy));
 
-/* README image references resolve */
-const imgRefs = [...readme.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)].map(m => m[1]);
+/* README image references resolve — markdown images AND raw <img> tags, since
+   the screenshot gallery uses <img src="..."> and a moved asset broke it once */
+const mdImgs = [...readme.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)].map(m => m[1]);
+const htmlImgs = [...readme.matchAll(/<img[^>]+src="([^"]+)"/g)].map(m => m[1]);
+const imgRefs = mdImgs.concat(htmlImgs).filter(r => !/^(https?:)?\/\//.test(r));
 const missingImgs = imgRefs.filter(r => !exists(r));
-ok('every README image link resolves', missingImgs.length === 0, missingImgs.join());
+ok('every README image link resolves (markdown + <img>)', missingImgs.length === 0,
+   missingImgs.join());
 ok('LICENSE is present and MIT', exists('LICENSE') && /MIT/i.test(read('LICENSE')));
 ok('version in manifest matches the zip name',
    zipName === `pixel-companion-extension-${manifest.version}.zip`);
