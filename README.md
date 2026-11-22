@@ -29,9 +29,9 @@ the ginger cat is permanently unimpressed.
 
 ## Install
 
-**From the Chrome Web Store (recommended once live):**
+**From the Chrome Web Store:**
 
-> Install: [Chrome Web Store — _link goes live after review_]
+> Install: [Pixel Companion](https://chromewebstore.google.com/detail/pixel-companion/bhkonanbbgpiphhfgiipmmpmelilgdkm)
 
 **From source (developer install):**
 

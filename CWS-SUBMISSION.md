@@ -1,15 +1,34 @@
 # Chrome Web Store Submission Guide — Pixel Companion v1.1.0
 
-Everything below is prepared for a **new item** in your existing developer
-account (the ClauseRadar one). Submission happens at
-https://chrome.google.com/webstore/devconsole — you paste, upload, and answer
-the forms; nothing here requires terminal access.
+**This is an update to the already-published item, not a new listing.**
+
+| | |
+|---|---|
+| Live item | Pixel Companion — **v1.0.0** |
+| Store URL | https://chromewebstore.google.com/detail/pixel-companion/bhkonanbbgpiphhfgiipmmpmelilgdkm |
+| Item ID | `bhkonanbbgpiphhfgiipmmpmelilgdkm` |
+| New package | `pixel-companion-extension-1.1.0.zip` — **v1.1.0** |
+
+Because the item already exists, the upload happens on its **Package** tab in
+the developer console — there is no "new item" step, and the store URL and
+extension ID do not change. Submission happens at
+https://chrome.google.com/webstore/devconsole — you upload and answer the
+forms; nothing here requires terminal access.
 
 ---
 
-## 1. Upload file
+## 1. Upload the update
 
 **`pixel-companion-extension-1.1.0.zip`** (built from this folder — 14 runtime files)
+
+1. Open the existing Pixel Companion item in the developer console
+2. Go to **Package → Upload new package** and select the zip
+3. Confirm the console shows **1.1.0** (the live version is **1.0.0**, so this
+   is a valid update) and that **no new permissions** are reported — the
+   package still asks only for `storage` + `activeTab`, so existing users get
+   no re-permission prompt
+4. Save the package, then work through the listing refresh (section 2) and
+   submit for review
 
 Built from the project folder with `test/`, `tools/`, `scripts/`, and all
 `.ppm`/`.gif`/`.py` dev artifacts excluded. `manifest.json` is at the zip root —
@@ -17,11 +36,24 @@ the layout the store requires.
 
 > After any future code change: bump `version` in manifest.json, update this
 > guide's title to match, then rebuild the zip (only the runtime files go in —
-> same exclusions).
+> same exclusions). Every upload must be a version higher than the live one.
 
 ---
 
 ## 2. Store listing (copy-paste ready)
+
+The item is already listed, so most listing fields stay as they are. For this
+update, refresh:
+
+- **Screenshots** — the live gallery still shows the 12-character roster.
+  Replace it with `assets/shot-0-roster.png`, plus any new in-page shots.
+- **Description** — paste the 15-character copy below (the live one says
+  twelve).
+- **Summary** — update it to the copy below if the live one still says twelve.
+- **Promo tile / marquee** — already attached to the live listing; refresh
+  with the regenerated assets if you want the new palette.
+
+The copy-paste values:
 
 **Name** (must equal `name` in manifest.json — the store shows the manifest's)
 ```
@@ -96,11 +128,11 @@ PRIVACY — WHY THIS EXTENSION IS SAFE
 Free, no ads, no accounts, no upgrades. Just a small pixel friend.
 ```
 
-**Screenshots** — you'll need 1–5, 1280×800 or 640×400.
+**Screenshots** — 1–5, 1280×800 or 640×400. Replace the live gallery.
 
 `assets/shot-0-roster.png` is a ready-made 1280×800 showing all fifteen
 characters (rendered from `content/art.js`, so it can never drift from the
-sprite data). Upload it as screenshot #1.
+sprite data). Use it as screenshot #1 and delete the old 12-character shots.
 
 To regenerate the store art after a character change, open
 `tools/store-art.html?shot=roster` (`promo`, `marquee`) in a browser at the
@@ -116,15 +148,19 @@ For the rest, fastest path:
    the character grid; the panda mid-kung-fu; Scout Pup saluting mid-hop;
    the watermelon mid-seed-spit
 
-**Small promo tile (440×280)** — required for new listings.
-`assets/promo-tile-440x280.png` is already generated.
+**Small promo tile (440×280)** — already attached to the live item;
+`assets/promo-tile-440x280.png` is the regenerated version if you want to
+replace it.
 
-**Marquee (1400×560)** — optional; `assets/marquee-tile-1400x560.png` is
-already generated.
+**Marquee (1400×560)** — optional; `assets/marquee-tile-1400x560.png` is the
+regenerated version.
 
 ---
 
 ## 3. Privacy tab (the part that gets things rejected — copy exactly)
+
+The answers did not change in 1.1.0 — no new permissions, no new data, no
+remote code. Re-certify the same answers when submitting the update.
 
 All fields below are answered as strictly as the form allows.
 
@@ -149,6 +185,9 @@ collected". Use the public repo copy:
 
 ## 4. Distribution tab
 
+Distribution does not change for an update (the item is already Public, Free,
+all regions). Only the data-use certification needs re-checking:
+
 - **Visibility:** `Public`
 - **Regions:** all (default) — nothing region-specific
 - **Pricing:** `Free`
@@ -160,8 +199,12 @@ collected". Use the public repo copy:
 
 | Item | Status |
 |---|---|
+| Update target is the live item (v1.0.0, id `bhkonanbbgpiphhfgiipmmpmelilgdkm`) | ✅ |
+| Package version **1.1.0** is higher than the live **1.0.0** | ✅ |
+| No permission changes (`storage` + `activeTab`) — no re-permission prompt | ✅ |
+| Existing users keep their settings (all live skin ids still exist; `theme` defaults to Auto) | ✅ |
+| Store URL / item ID unchanged by the update | ✅ |
 | Zip builds, `manifest.json` at root | ✅ built & verified |
-| Version bumped (`1.1.0` — adds Scout Pup + Watermelon) | ✅ |
 | No `eval`, no remote code, no remote assets | ✅ audited |
 | Manifest v3 | ✅ |
 | Icons 16/32/48/128, valid PNGs, real pixel dimensions | ✅ verified |
@@ -182,9 +225,10 @@ collected". Use the public repo copy:
 
 ## 6. What review will look like
 
-For an extension with this permission set, CWS review is usually the fast lane
-(hours to a couple of days). The most likely reasons this specific item could
-get flagged, and why they don't apply:
+This is an **update with no permission changes**, which is normally the fastest
+path (often hours to a couple of days). The current 1.0.0 listing stays visible
+while the update is in review. The most likely reasons this item could get
+flagged, and why they don't apply:
 
 - **"Broad host permissions" warning** — declared as `http://*/*` +
   `https://*/*` content-script matches, which is standard for a
@@ -206,6 +250,10 @@ get flagged, and why they don't apply:
   and chose to keep it — see the comment above `label:` in `content/art.js`.
   Don't "correct" it without asking.
 
-After approval, the item is live at
-`chrome.google.com/webstore/detail/<id>` — that URL is what you'd put in the
-README for the one-click install link.
+After approval the update rolls out to existing installs and the listing URL
+stays the same:
+
+https://chromewebstore.google.com/detail/pixel-companion/bhkonanbbgpiphhfgiipmmpmelilgdkm
+
+That URL is already wired into the README's install link, so no follow-up edit
+is needed after the update ships.
